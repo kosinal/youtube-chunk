@@ -23,7 +23,7 @@ import Grid from '@mui/material/Grid2';
 import { ThemeProvider, createTheme } from "@mui/material/styles"
 import type { Theme } from "@mui/material/styles"
 import Box from '@mui/material/Box';
-import AccessAlarmsOutlinedIcon from '@mui/icons-material/AccessAlarmsOutlined';
+import NotificationsPausedIcon from '@mui/icons-material/NotificationsPaused';
 
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
@@ -33,7 +33,7 @@ const theme = createTheme({
   palette: {
     mode: 'dark',
     primary: {
-      main: '#011e5b',
+      main: '#a7c3ff',
     }
   },
 })
@@ -94,7 +94,7 @@ const Player: React.FC = () => {
             color: (theme: Theme) => theme.palette.text.primary,
             backgroundColor: (theme: Theme) => theme.palette.primary.main
           }}>
-            <AccessAlarmsOutlinedIcon />
+            <NotificationsPausedIcon />
           </Avatar>
           <Typography component="h1" variant="h5">
             YouTube Timer
