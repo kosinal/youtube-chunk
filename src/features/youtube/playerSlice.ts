@@ -7,6 +7,7 @@ interface AppState {
   start: number;
   delayedStart: number;
   isPlaying: boolean;
+  startTime: string;
 }
 
 const initialState: AppState = {
@@ -15,6 +16,7 @@ const initialState: AppState = {
   start: 0,
   delayedStart: 0,
   isPlaying: false,
+  startTime: new Date().toISOString(),
 };
 
 export const playerSlice = createAppSlice({
@@ -30,23 +32,23 @@ export const playerSlice = createAppSlice({
     setStart: create.reducer((state, action: PayloadAction<number>) => {
       state.start = action.payload;
     }),
-    setDelayedStart: create.reducer((state, action: PayloadAction<number>) => {
-      state.delayedStart = action.payload;
-    }),
     setPlaying(state, action: PayloadAction<boolean>) {
       state.isPlaying = action.payload;
+    },
+    setStartTime(state, action: PayloadAction<string>){
+      state.startTime = action.payload
     },
   }),
   selectors: {
     selectVideoUrl: (state) => state.videoUrl,
     selectDuration: (state) => state.duration,
     selectStart: (state) => state.start,
-    selectDelayedStart: (state) => state.delayedStart,
     selectIsPlaying: (state) => state.isPlaying,
+    selectStartTime: (state) => state.startTime,
   },
 });
 
-export const { setVideoUrl, setDuration, setStart, setPlaying, setDelayedStart } =
+export const { setVideoUrl, setDuration, setStart, setPlaying, setStartTime } =
   playerSlice.actions;
-export const { selectVideoUrl, selectDuration, selectStart, selectIsPlaying, selectDelayedStart } =
+export const { selectVideoUrl, selectDuration, selectStart, selectIsPlaying, selectStartTime } =
   playerSlice.selectors;

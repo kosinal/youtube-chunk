@@ -1,4 +1,4 @@
-import React, {useEffect} from "react"
+import React from "react"
 import { useState, useRef } from "react"
 import { useAppDispatch, useAppSelector } from "../../app/hooks"
 import type { YouTubePlayer } from "react-youtube"
@@ -12,7 +12,9 @@ import {
   selectDuration,
   selectIsPlaying,
   setStart,
-  selectStart, selectDelayedStart, setDelayedStart,
+  selectStart,
+  setStartTime,
+  selectStartTime
 } from "./playerSlice"
 import Avatar from "@mui/material/Avatar"
 import IconButton from "@mui/material/IconButton"
@@ -42,57 +44,61 @@ const Player: React.FC = () => {
   const dispatch = useAppDispatch()
   const videoUrl = useAppSelector(selectVideoUrl)
   const start = useAppSelector(selectStart)
-
-  const delayedStart = useAppSelector(selectDelayedStart)
-  const delayedStartRef = useRef(delayedStart)
-  useEffect(() => { delayedStartRef.current = delayedStart })
+  const startTime = useAppSelector(selectStartTime)
 
   const duration = useAppSelector(selectDuration)
   const isPlaying = useAppSelector(selectIsPlaying)
   const [player, setPlayer] = useState<YouTubePlayer | null>(null)
+  const [videoLenMinutes, setVideoLenMinutes] = useState<number>(999999)
   const timeoutRef = useRef<NodeJS.Timeout | null>(null)
-  const intervalStartRef = useRef<NodeJS.Timeout | null>(null)
+  const isError = start > videoLenMinutes
 
   const minute = 60 * 1000
 
+  if (isError){
+    dispatch(setPlaying(false))
+  }
   const handlePlayPause = () => {
     if (isPlaying) {
       player?.pauseVideo()
       dispatch(setPlaying(false))
-      dispatch(setStart(delayedStartRef.current || 0))
+      changeMinutesPlayed(start, startTime)
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current)
         timeoutRef.current = null
       }
-      if (intervalStartRef.current) {
-        clearInterval(intervalStartRef.current)
-        intervalStartRef.current = null
-      }
     } else {
       if (player) {
         player.playVideo()
-        dispatch(setDelayedStart(start))
         dispatch(setPlaying(true))
+        const newStartTime = new Date().toISOString()
+        dispatch(setStartTime(newStartTime))
         timeoutRef.current = setTimeout(
           () => {
             player.pauseVideo()
             dispatch(setPlaying(false))
-            dispatch(setStart(delayedStartRef.current || 0))
+            changeMinutesPlayed(start, newStartTime)
           },
           duration * minute,
         )
-        intervalStartRef.current = setInterval(() => {
-          if (!player) {
-            return
-          }
-          dispatch(setDelayedStart((delayedStartRef.current || 0) + 1))
-        }, minute)
       }
     }
   }
 
+  const changeMinutesPlayed = (startMinutes: number, startTime: string) => {
+    const currentTime = new Date()
+    const videoStartTime = new Date(startTime)
+    const delta = 1000
+    const diffRaw = Math.abs(currentTime.getTime() - videoStartTime.getTime()) + delta
+    const minutesPlayed = Math.floor(diffRaw / 60000)
+    dispatch(setStart(startMinutes + minutesPlayed))
+  }
+
   const handleVideoReady = (event: { target: YouTubePlayer }) => {
-    setPlayer(event.target)
+    const player = event.target
+    const durationInSeconds = player.getDuration()
+    setVideoLenMinutes(Math.floor(durationInSeconds / 60))
+    setPlayer(player)
   }
 
   const playerOpts = {
@@ -151,6 +157,7 @@ const Player: React.FC = () => {
                 value={start}
                 disabled={isPlaying}
                 onChange={(e) => dispatch(setStart(Number(e.target.value)))}
+                {...(isError ? { error: true, helperText: `Maximum value is ${videoLenMinutes}` } : {})}
               />
             </Grid>
             <Grid size={6}>
@@ -172,6 +179,7 @@ const Player: React.FC = () => {
                 aria-label="delete"
                 sx={{ mt: 3, mb: 2 }}
                 onClick={handlePlayPause}
+                disabled={isError}
               >
                 {isPlaying ? <StopIcon /> : <PlayArrowIcon />}
               </IconButton>
