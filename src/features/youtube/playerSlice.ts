@@ -35,8 +35,8 @@ export const playerSlice = createAppSlice({
     setPlaying(state, action: PayloadAction<boolean>) {
       state.isPlaying = action.payload;
     },
-    setStartTime(state, action: PayloadAction<string>){
-      state.startTime = action.payload
+    setStartTime(state, action: PayloadAction<string>) {
+      state.startTime = action.payload;
     },
   }),
   selectors: {
@@ -50,5 +50,10 @@ export const playerSlice = createAppSlice({
 
 export const { setVideoUrl, setDuration, setStart, setPlaying, setStartTime } =
   playerSlice.actions;
-export const { selectVideoUrl, selectDuration, selectStart, selectIsPlaying, selectStartTime } =
-  playerSlice.selectors;
+export const {
+  selectVideoUrl,
+  selectDuration,
+  selectStart,
+  selectIsPlaying,
+  selectStartTime,
+} = playerSlice.selectors;

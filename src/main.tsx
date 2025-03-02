@@ -5,7 +5,7 @@ import App from "./App";
 import { store } from "./app/store";
 import "./index.css";
 
-document.body.requestFullscreen()
+document.body.requestFullscreen();
 const container = document.getElementById("root");
 
 if (container) {
