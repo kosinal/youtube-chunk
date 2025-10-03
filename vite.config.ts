@@ -35,5 +35,6 @@ const manifestForPlugIn: Partial<VitePWAOptions> = {
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: "/vite-youtube-chunker/",
   plugins: [react(), VitePWA(manifestForPlugIn)],
 });
