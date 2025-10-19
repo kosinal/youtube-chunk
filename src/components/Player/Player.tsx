@@ -230,6 +230,28 @@ const Player: React.FC = () => {
     setPlayer(player);
   };
 
+  const handleVideoEnd = () => {
+    // Clear timeout to prevent double-advancement
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+      timeoutRef.current = null;
+    }
+
+    // Pause video (defensive)
+    player?.pauseVideo();
+
+    // Reset start to 0 for next video
+    dispatch(setStart(0));
+
+    // Advance to next video or stop
+    if (currentVideoIndex < videos.length - 1) {
+      dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
+      // isPlaying remains true, useEffect will auto-play next video from start=0
+    } else {
+      dispatch(setPlaying(false));
+    }
+  };
+
   const playerOpts = {
     playerVars: {
       start: start * 60,
@@ -361,6 +383,7 @@ const Player: React.FC = () => {
           key={currentVideo.id}
           videoId={currentVideo.id}
           onReady={handleVideoReady}
+          onEnd={handleVideoEnd}
           className={styles.video_player}
           opts={playerOpts}
         />
