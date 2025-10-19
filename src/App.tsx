@@ -1,10 +1,12 @@
-import { useState } from "react";
+import { useState, lazy, Suspense } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import "./App.css";
-import Player from "./components/Player/Player";
 import UpdateNotification from "./components/UpdateNotification";
 import Copyright from "./components/Copyright";
 import background from "./img/bg.jpg";
+
+// Lazy load Player component for code-splitting
+const Player = lazy(() => import("./components/Player/Player"));
 
 const App = () => {
   const [showUpdateNotification, setShowUpdateNotification] = useState(false);
@@ -59,7 +61,13 @@ const App = () => {
       }}
     >
       <header className="App-header">
-        <Player />
+        <Suspense
+          fallback={
+            <div style={{ color: "white", padding: "20px" }}>Loading...</div>
+          }
+        >
+          <Player />
+        </Suspense>
         <Copyright />
       </header>
       <UpdateNotification
