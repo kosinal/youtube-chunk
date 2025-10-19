@@ -109,4 +109,25 @@ export default defineConfig({
     // Inject app version into the app for display/logging
     __APP_VERSION__: JSON.stringify(appVersion),
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Material-UI core components
+          "mui-core": ["@mui/material", "@emotion/react", "@emotion/styled"],
+          // Material-UI icons separate chunk
+          "mui-icons": ["@mui/icons-material"],
+          // YouTube player library
+          "react-youtube": ["react-youtube"],
+          // Redux state management
+          redux: [
+            "@reduxjs/toolkit",
+            "react-redux",
+            "redux-persist",
+            "redux-logger",
+          ],
+        },
+      },
+    },
+  },
 });
