@@ -3,6 +3,7 @@ import { useRegisterSW } from "virtual:pwa-register/react";
 import "./App.css";
 import Player from "./features/youtube/Player";
 import UpdateNotification from "./components/UpdateNotification";
+import Copyright from "./components/Copyright";
 import background from "./img/bg.jpg";
 
 const App = () => {
@@ -59,6 +60,7 @@ const App = () => {
     >
       <header className="App-header">
         <Player />
+        <Copyright />
       </header>
       <UpdateNotification
         open={showUpdateNotification || needRefresh}
