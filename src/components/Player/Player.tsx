@@ -1,14 +1,17 @@
 import React from "react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import type { YouTubePlayer } from "react-youtube";
 import YouTube from "react-youtube";
 import styles from "./Player.module.css";
 import {
-  setVideoUrl,
+  setVideos,
+  setCurrentVideoIndex,
   setDuration,
   setPlaying,
-  selectVideoUrl,
+  selectVideos,
+  selectCurrentVideoIndex,
+  selectCurrentVideo,
   selectDuration,
   selectIsPlaying,
   setStart,
@@ -16,6 +19,8 @@ import {
   setStartTime,
   selectStartTime,
 } from "./playerSlice";
+import VideoList from "./VideoList";
+import type { Video } from "./playerSlice";
 import Avatar from "@mui/material/Avatar";
 import IconButton from "@mui/material/IconButton";
 import PlayArrowIcon from "@mui/icons-material/PlayArrow";
@@ -27,7 +32,7 @@ import { ThemeProvider, createTheme } from "@mui/material/styles";
 import type { Theme } from "@mui/material/styles";
 import Box from "@mui/material/Box";
 import NotificationsPausedIcon from "@mui/icons-material/NotificationsPaused";
-
+import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
 
@@ -42,12 +47,15 @@ const theme = createTheme({
 
 const Player: React.FC = () => {
   const dispatch = useAppDispatch();
-  const videoUrl = useAppSelector(selectVideoUrl);
+  const videos = useAppSelector(selectVideos);
+  const currentVideoIndex = useAppSelector(selectCurrentVideoIndex);
+  const currentVideo = useAppSelector(selectCurrentVideo);
   const start = useAppSelector(selectStart);
   const startTime = useAppSelector(selectStartTime);
-
   const duration = useAppSelector(selectDuration);
   const isPlaying = useAppSelector(selectIsPlaying);
+
+  const [urlsInput, setUrlsInput] = useState<string>("");
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const [videoLenMinutes, setVideoLenMinutes] = useState<number>(999999);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -55,12 +63,85 @@ const Player: React.FC = () => {
 
   const minute = 60 * 1000;
 
+  const changeMinutesPlayed = useCallback(
+    (startMinutes: number, startTime: string) => {
+      const currentTime = new Date();
+      const videoStartTime = new Date(startTime);
+      const delta = 1000;
+      const diffRaw =
+        Math.abs(currentTime.getTime() - videoStartTime.getTime()) + delta;
+      const minutesPlayed = Math.floor(diffRaw / 60000);
+      dispatch(setStart(startMinutes + minutesPlayed));
+    },
+    [dispatch],
+  );
+
   // Stop playing if there's an error (start time exceeds video length)
   useEffect(() => {
     if (isError && isPlaying) {
       dispatch(setPlaying(false));
     }
   }, [isError, isPlaying, dispatch]);
+
+  // Auto-play next video when currentVideoIndex changes while playing
+  useEffect(() => {
+    if (isPlaying && player && currentVideo) {
+      const newStartTime = new Date().toISOString();
+      dispatch(setStartTime(newStartTime));
+      player.seekTo(start * 60, true);
+      player.playVideo();
+
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        player.pauseVideo();
+        changeMinutesPlayed(start, newStartTime);
+
+        if (currentVideoIndex < videos.length - 1) {
+          dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
+        } else {
+          dispatch(setPlaying(false));
+        }
+      }, duration * minute);
+    }
+  }, [
+    currentVideoIndex,
+    currentVideo,
+    isPlaying,
+    player,
+    start,
+    duration,
+    minute,
+    dispatch,
+    videos.length,
+    changeMinutesPlayed,
+  ]);
+
+  const handleLoadVideos = () => {
+    const parsedVideos = parseUrls(urlsInput);
+    dispatch(setVideos(parsedVideos));
+  };
+
+  const parseUrls = (input: string): Video[] => {
+    return input
+      .split(/[,;]/)
+      .map((url) => url.trim())
+      .filter((url) => url.length > 0)
+      .map((url) => ({
+        url: url,
+        id: extractVideoId(url),
+      }))
+      .filter((video) => video.id !== "");
+  };
+
+  const handleVideoSelect = (index: number) => {
+    if (!isPlaying) {
+      dispatch(setCurrentVideoIndex(index));
+    }
+  };
+
   const handlePlayPause = () => {
     if (isPlaying) {
       player?.pauseVideo();
@@ -78,21 +159,17 @@ const Player: React.FC = () => {
         dispatch(setStartTime(newStartTime));
         timeoutRef.current = setTimeout(() => {
           player.pauseVideo();
-          dispatch(setPlaying(false));
           changeMinutesPlayed(start, newStartTime);
+
+          if (currentVideoIndex < videos.length - 1) {
+            dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
+            dispatch(setPlaying(true));
+          } else {
+            dispatch(setPlaying(false));
+          }
         }, duration * minute);
       }
     }
-  };
-
-  const changeMinutesPlayed = (startMinutes: number, startTime: string) => {
-    const currentTime = new Date();
-    const videoStartTime = new Date(startTime);
-    const delta = 1000;
-    const diffRaw =
-      Math.abs(currentTime.getTime() - videoStartTime.getTime()) + delta;
-    const minutesPlayed = Math.floor(diffRaw / 60000);
-    dispatch(setStart(startMinutes + minutesPlayed));
   };
 
   const handleVideoReady = (event: { target: YouTubePlayer }) => {
@@ -137,15 +214,28 @@ const Player: React.FC = () => {
           <Grid container spacing={2}>
             <Grid size={12}>
               <TextField
-                name="video_url"
+                name="video_urls"
                 required
                 fullWidth
-                id="video_url"
-                label="YouTube Video URL"
-                value={videoUrl}
+                multiline
+                rows={4}
+                id="video_urls"
+                label="YouTube Video URLs (separated by , or ;)"
+                value={urlsInput}
                 disabled={isPlaying}
-                onChange={(e) => dispatch(setVideoUrl(e.target.value))}
+                onChange={(e) => setUrlsInput(e.target.value)}
+                placeholder="https://www.youtube.com/watch?v=..., https://youtu.be/..."
               />
+            </Grid>
+            <Grid size={12}>
+              <Button
+                fullWidth
+                variant="contained"
+                onClick={handleLoadVideos}
+                disabled={isPlaying || !urlsInput.trim()}
+              >
+                Load Videos
+              </Button>
             </Grid>
             <Grid size={6}>
               <TextField
@@ -179,13 +269,23 @@ const Player: React.FC = () => {
                 onChange={(e) => dispatch(setDuration(Number(e.target.value)))}
               />
             </Grid>
+            {videos.length > 0 && (
+              <Grid size={12}>
+                <VideoList
+                  videos={videos}
+                  currentIndex={currentVideoIndex}
+                  onVideoSelect={handleVideoSelect}
+                  isPlaying={isPlaying}
+                />
+              </Grid>
+            )}
             <Grid size={12}>
               <IconButton
                 type="button"
                 aria-label="delete"
                 sx={{ mt: 3, mb: 2 }}
                 onClick={handlePlayPause}
-                disabled={isError}
+                disabled={isError || videos.length === 0}
               >
                 {isPlaying ? <StopIcon /> : <PlayArrowIcon />}
               </IconButton>
@@ -193,9 +293,10 @@ const Player: React.FC = () => {
           </Grid>
         </Box>
       </Container>
-      {videoUrl && (
+      {currentVideo && (
         <YouTube
-          videoId={extractVideoId(videoUrl)}
+          key={currentVideo.id}
+          videoId={currentVideo.id}
           onReady={handleVideoReady}
           className={styles.video_player}
           opts={playerOpts}

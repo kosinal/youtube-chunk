@@ -23,7 +23,11 @@ export default function Copyright() {
         },
       }}
     >
-      <Typography variant="caption" component="div" sx={{ fontSize: "0.75rem" }}>
+      <Typography
+        variant="caption"
+        component="div"
+        sx={{ fontSize: "0.75rem" }}
+      >
         © {currentYear} Lukas Kosina · v{__APP_VERSION__} ·{" "}
         <Link
           href="https://github.com/kosinal/vite-youtube-chunker/blob/master/LICENSE"

@@ -43,7 +43,7 @@ global.IntersectionObserver = class IntersectionObserver {
     return [];
   }
   unobserve() {}
-} as any;
+} as unknown as typeof global.IntersectionObserver;
 
 // Mock requestFullscreen
 document.body.requestFullscreen = vi.fn().mockResolvedValue(undefined);

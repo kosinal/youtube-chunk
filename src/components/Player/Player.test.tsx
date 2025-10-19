@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { screen, waitFor } from "@testing-library/react";
+import { screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../test/testUtils";
 import Player from "./Player";
@@ -12,29 +12,54 @@ describe("Player Component", () => {
   it("renders the form with all input fields", () => {
     renderWithProviders(<Player />);
 
-    expect(screen.getByLabelText(/youtube video url/i)).toBeInTheDocument();
+    expect(
+      screen.getByLabelText(/youtube video urls \(separated by , or ;\)/i),
+    ).toBeInTheDocument();
     expect(screen.getByLabelText(/start/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/duration/i)).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /load videos/i }),
+    ).toBeInTheDocument();
   });
 
-  it("renders play button initially", () => {
+  it("renders play button initially disabled", () => {
     renderWithProviders(<Player />);
 
-    const playButton = screen.getByRole("button");
+    const playButton = screen.getByLabelText(/delete/i);
     expect(playButton).toBeInTheDocument();
-    // Play icon should be visible (not stop icon)
-    expect(playButton.querySelector("svg")).toBeInTheDocument();
+    expect(playButton).toBeDisabled();
   });
 
-  it("updates videoUrl when URL input changes", async () => {
+  it("loads videos when URLs are entered and Load Videos is clicked", async () => {
     const user = userEvent.setup({ delay: null });
     const { store } = renderWithProviders(<Player />);
 
-    const urlInput = screen.getByLabelText(/youtube video url/i);
-    await user.clear(urlInput);
-    await user.type(urlInput, "https://youtube.com/watch?v=test123");
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
 
-    expect(store.getState().player.videoUrl).toBe("https://youtube.com/watch?v=test123");
+    // Use fireEvent for Material-UI multiline TextField
+    fireEvent.change(urlInput, {
+      target: {
+        value:
+          "https://youtube.com/watch?v=test123,https://youtube.com/watch?v=test456",
+      },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
+
+    await waitFor(
+      () => {
+        const state = store.getState().player;
+        expect(state.videos.length).toBeGreaterThan(0);
+      },
+      { timeout: 5000 },
+    );
+
+    const state = store.getState().player;
+    expect(state.videos).toHaveLength(2);
+    expect(state.videos[0].id).toBe("test123");
+    expect(state.videos[1].id).toBe("test456");
+    expect(state.currentVideoIndex).toBe(0);
   });
 
   it("updates start when start input changes", async () => {
@@ -63,9 +88,14 @@ describe("Player Component", () => {
     const user = userEvent.setup({ delay: null });
     renderWithProviders(<Player />);
 
-    // Set a URL first
-    const urlInput = screen.getByLabelText(/youtube video url/i);
-    await user.type(urlInput, "https://youtube.com/watch?v=test123");
+    // Set URLs first
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: { value: "https://youtube.com/watch?v=test123" },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
 
     // Wait for YouTube player to be ready
     await waitFor(() => {
@@ -73,21 +103,27 @@ describe("Player Component", () => {
     });
 
     // Click play button
-    const playButton = screen.getByRole("button");
+    const playButton = screen.getByLabelText(/delete/i);
     await user.click(playButton);
 
     // Inputs should be disabled
     expect(urlInput).toBeDisabled();
     expect(screen.getByLabelText(/start/i)).toBeDisabled();
     expect(screen.getByLabelText(/duration/i)).toBeDisabled();
+    expect(loadButton).toBeDisabled();
   });
 
-  it("renders YouTube player when videoUrl is provided", async () => {
+  it("renders YouTube player when videos are loaded", async () => {
     const user = userEvent.setup({ delay: null });
     renderWithProviders(<Player />);
 
-    const urlInput = screen.getByLabelText(/youtube video url/i);
-    await user.type(urlInput, "https://youtube.com/watch?v=dQw4w9WgXcQ");
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
 
     await waitFor(() => {
       expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
@@ -102,18 +138,29 @@ describe("Player Component", () => {
     const user = userEvent.setup({ delay: null });
 
     const testCases = [
-      { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+      {
+        url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+        expectedId: "dQw4w9WgXcQ",
+      },
       { url: "https://youtu.be/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
-      { url: "https://www.youtube.com/embed/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
-      { url: "https://www.youtube.com/shorts/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+      {
+        url: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+        expectedId: "dQw4w9WgXcQ",
+      },
+      {
+        url: "https://www.youtube.com/shorts/dQw4w9WgXcQ",
+        expectedId: "dQw4w9WgXcQ",
+      },
     ];
 
     for (const testCase of testCases) {
       const { unmount } = renderWithProviders(<Player />);
-      const urlInput = screen.getByLabelText(/youtube video url/i);
+      const urlInput = screen.getByLabelText(/youtube video urls/i);
 
-      await user.clear(urlInput);
-      await user.type(urlInput, testCase.url);
+      fireEvent.change(urlInput, { target: { value: testCase.url } });
+
+      const loadButton = screen.getByRole("button", { name: /load videos/i });
+      await user.click(loadButton);
 
       await waitFor(() => {
         expect(screen.getByTestId("youtube-player")).toHaveAttribute(
@@ -131,8 +178,13 @@ describe("Player Component", () => {
     renderWithProviders(<Player />);
 
     // Set URL to trigger YouTube player mock
-    const urlInput = screen.getByLabelText(/youtube video url/i);
-    await user.type(urlInput, "https://youtube.com/watch?v=test");
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: { value: "https://youtube.com/watch?v=test" },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
 
     // Wait for player to be ready (sets videoLenMinutes to 10 via mock)
     await waitFor(() => {
@@ -150,13 +202,15 @@ describe("Player Component", () => {
     });
 
     // Play button should be disabled
-    expect(screen.getByRole("button")).toBeDisabled();
+    expect(screen.getByLabelText(/delete/i)).toBeDisabled();
   });
 
   it("displays YouTube Timer heading", () => {
     renderWithProviders(<Player />);
 
-    expect(screen.getByRole("heading", { name: /youtube timer/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: /youtube timer/i }),
+    ).toBeInTheDocument();
   });
 
   it("uses dark theme", () => {
@@ -170,9 +224,81 @@ describe("Player Component", () => {
     const { store } = renderWithProviders(<Player />);
 
     const state = store.getState().player;
-    expect(state.videoUrl).toBe("");
+    expect(state.videos).toEqual([]);
+    expect(state.currentVideoIndex).toBe(0);
     expect(state.duration).toBe(60);
     expect(state.start).toBe(0);
     expect(state.isPlaying).toBe(false);
+  });
+
+  it("displays VideoList when videos are loaded", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: {
+        value:
+          "https://youtube.com/watch?v=abc123,https://youtube.com/watch?v=def456",
+      },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+
+    // Check button is enabled before clicking
+    expect(loadButton).not.toBeDisabled();
+
+    await user.click(loadButton);
+
+    await waitFor(
+      () => {
+        expect(screen.getByText(/Playlist \(2 videos\)/i)).toBeInTheDocument();
+      },
+      { timeout: 5000 },
+    );
+  });
+
+  it("parses URLs separated by semicolons", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: {
+        value:
+          "https://youtube.com/watch?v=abc123;https://youtube.com/watch?v=def456",
+      },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
+
+    await waitFor(() => {
+      const state = store.getState().player;
+      expect(state.videos).toHaveLength(2);
+    });
+  });
+
+  it("filters out invalid URLs when loading", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: {
+        value:
+          "https://youtube.com/watch?v=abc123,invalid-url,https://youtube.com/watch?v=def456",
+      },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
+
+    await waitFor(() => {
+      const state = store.getState().player;
+      expect(state.videos).toHaveLength(2);
+      expect(state.videos[0].id).toBe("abc123");
+      expect(state.videos[1].id).toBe("def456");
+    });
   });
 });
