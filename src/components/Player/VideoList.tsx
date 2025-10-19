@@ -38,7 +38,7 @@ const VideoList: React.FC<VideoListProps> = ({
               disabled={isPlaying}
             >
               <ListItemText
-                primary={`${index + 1}. ${video.url}`}
+                primary={`${index + 1}. ${video.title || video.url}`}
                 primaryTypographyProps={{
                   noWrap: true,
                   fontSize: "0.875rem",

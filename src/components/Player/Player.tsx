@@ -58,6 +58,7 @@ const Player: React.FC = () => {
   const [urlsInput, setUrlsInput] = useState<string>("");
   const [player, setPlayer] = useState<YouTubePlayer | null>(null);
   const [videoLenMinutes, setVideoLenMinutes] = useState<number>(999999);
+  const [isLoadingVideos, setIsLoadingVideos] = useState<boolean>(false);
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isError = start > videoLenMinutes;
 
@@ -119,9 +120,34 @@ const Player: React.FC = () => {
     changeMinutesPlayed,
   ]);
 
-  const handleLoadVideos = () => {
-    const parsedVideos = parseUrls(urlsInput);
-    dispatch(setVideos(parsedVideos));
+  const fetchVideoTitle = async (url: string): Promise<string> => {
+    try {
+      const response = await fetch(
+        `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch video title");
+      }
+      const data = await response.json();
+      return data.title || "";
+    } catch (error) {
+      console.error("Error fetching video title:", error);
+      return "";
+    }
+  };
+
+  const handleLoadVideos = async () => {
+    setIsLoadingVideos(true);
+    try {
+      const parsedVideos = await parseUrls(urlsInput);
+      dispatch(setVideos(parsedVideos));
+    } catch (error) {
+      console.error("Error loading videos:", error);
+      const parsedVideos = parseUrlsWithoutTitles(urlsInput);
+      dispatch(setVideos(parsedVideos));
+    } finally {
+      setIsLoadingVideos(false);
+    }
   };
 
   const handleClearVideos = () => {
@@ -131,7 +157,7 @@ const Player: React.FC = () => {
     dispatch(setVideos([]));
   };
 
-  const parseUrls = (input: string): Video[] => {
+  const parseUrlsWithoutTitles = (input: string): Video[] => {
     return input
       .split(/[,;]/)
       .map((url) => url.trim())
@@ -141,6 +167,24 @@ const Player: React.FC = () => {
         id: extractVideoId(url),
       }))
       .filter((video) => video.id !== "");
+  };
+
+  const parseUrls = async (input: string): Promise<Video[]> => {
+    const videos = parseUrlsWithoutTitles(input);
+
+    const videosWithTitles = await Promise.all(
+      videos.map(async (video) => {
+        try {
+          const title = await fetchVideoTitle(video.url);
+          return { ...video, title };
+        } catch (error) {
+          console.error(`Error fetching title for ${video.url}:`, error);
+          return video;
+        }
+      }),
+    );
+
+    return videosWithTitles;
   };
 
   const handleVideoSelect = (index: number) => {
@@ -254,10 +298,16 @@ const Player: React.FC = () => {
                   videos.length === 0 ? handleLoadVideos : handleClearVideos
                 }
                 disabled={
-                  isPlaying || (videos.length === 0 && !urlsInput.trim())
+                  isPlaying ||
+                  isLoadingVideos ||
+                  (videos.length === 0 && !urlsInput.trim())
                 }
               >
-                {videos.length === 0 ? "Load Videos" : "Clear Videos"}
+                {isLoadingVideos
+                  ? "Loading..."
+                  : videos.length === 0
+                    ? "Load Videos"
+                    : "Clear Videos"}
               </Button>
             </Grid>
             <Grid size={6}>

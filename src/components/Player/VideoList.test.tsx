@@ -6,9 +6,21 @@ import type { Video } from "./playerSlice";
 
 describe("VideoList", () => {
   const mockVideos: Video[] = [
-    { url: "https://www.youtube.com/watch?v=abc123", id: "abc123" },
-    { url: "https://www.youtube.com/watch?v=def456", id: "def456" },
-    { url: "https://www.youtube.com/watch?v=ghi789", id: "ghi789" },
+    {
+      url: "https://www.youtube.com/watch?v=abc123",
+      id: "abc123",
+      title: "Test Video 1",
+    },
+    {
+      url: "https://www.youtube.com/watch?v=def456",
+      id: "def456",
+      title: "Test Video 2",
+    },
+    {
+      url: "https://www.youtube.com/watch?v=ghi789",
+      id: "ghi789",
+      title: "Test Video 3",
+    },
   ];
 
   it("renders nothing when videos array is empty", () => {
@@ -35,7 +47,7 @@ describe("VideoList", () => {
     expect(screen.getByText(/Playlist \(3 videos\)/i)).toBeInTheDocument();
   });
 
-  it("renders all videos in the list", () => {
+  it("renders all videos in the list with titles", () => {
     render(
       <VideoList
         videos={mockVideos}
@@ -47,7 +59,7 @@ describe("VideoList", () => {
 
     mockVideos.forEach((video, index) => {
       expect(
-        screen.getByText(`${index + 1}. ${video.url}`),
+        screen.getByText(`${index + 1}. ${video.title}`),
       ).toBeInTheDocument();
     });
   });
@@ -63,7 +75,7 @@ describe("VideoList", () => {
     );
 
     const currentVideoItem = screen
-      .getByText(`2. ${mockVideos[1].url}`)
+      .getByText(`2. ${mockVideos[1].title}`)
       .closest('[role="button"]');
     expect(currentVideoItem).toHaveClass("Mui-selected");
   });
@@ -81,7 +93,7 @@ describe("VideoList", () => {
       />,
     );
 
-    const secondVideo = screen.getByText("2. " + mockVideos[1].url);
+    const secondVideo = screen.getByText("2. " + mockVideos[1].title);
     await user.click(secondVideo);
 
     expect(mockOnVideoSelect).toHaveBeenCalledWith(1);
@@ -99,7 +111,7 @@ describe("VideoList", () => {
 
     mockVideos.forEach((video, index) => {
       const videoButton = screen
-        .getByText(`${index + 1}. ${video.url}`)
+        .getByText(`${index + 1}. ${video.title}`)
         .closest('[role="button"]');
       expect(videoButton).toHaveAttribute("aria-disabled", "true");
     });
@@ -107,7 +119,11 @@ describe("VideoList", () => {
 
   it("displays singular video when count is 1", () => {
     const singleVideo: Video[] = [
-      { url: "https://www.youtube.com/watch?v=abc123", id: "abc123" },
+      {
+        url: "https://www.youtube.com/watch?v=abc123",
+        id: "abc123",
+        title: "Single Test Video",
+      },
     ];
 
     render(
@@ -120,5 +136,27 @@ describe("VideoList", () => {
     );
 
     expect(screen.getByText(/Playlist \(1 video\)/i)).toBeInTheDocument();
+  });
+
+  it("falls back to URL when title is not available", () => {
+    const videosWithoutTitles: Video[] = [
+      { url: "https://www.youtube.com/watch?v=abc123", id: "abc123" },
+      { url: "https://www.youtube.com/watch?v=def456", id: "def456" },
+    ];
+
+    render(
+      <VideoList
+        videos={videosWithoutTitles}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        isPlaying={false}
+      />,
+    );
+
+    videosWithoutTitles.forEach((video, index) => {
+      expect(
+        screen.getByText(`${index + 1}. ${video.url}`),
+      ).toBeInTheDocument();
+    });
   });
 });
