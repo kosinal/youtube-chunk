@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import "./App.css";
-import Player from "./features/youtube/Player";
+import Player from "./components/Player/Player";
 import UpdateNotification from "./components/UpdateNotification";
 import Copyright from "./components/Copyright";
 import background from "./img/bg.jpg";
