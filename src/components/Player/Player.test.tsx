@@ -1,12 +1,33 @@
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../test/testUtils";
 import Player from "./Player";
 
 describe("Player Component", () => {
+  beforeEach(() => {
+    // Mock fetch for oEmbed API calls
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      const urlString = input.toString();
+      if (urlString.includes("youtube.com/oembed")) {
+        // Extract video ID from the URL parameter
+        const match = urlString.match(/watch\?v=([^&]+)/);
+        const videoId = match ? match[1] : "unknown";
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              title: `Mock Video Title ${videoId}`,
+              author_name: "Mock Author",
+            }),
+        } as Response);
+      }
+      return Promise.reject(new Error("Unexpected fetch call"));
+    }) as typeof fetch;
+  });
+
   afterEach(() => {
-    // Clean up after tests
+    vi.restoreAllMocks();
   });
 
   it("renders the form with all input fields", () => {
