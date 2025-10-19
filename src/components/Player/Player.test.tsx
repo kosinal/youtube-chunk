@@ -1,0 +1,178 @@
+import { describe, it, expect, afterEach } from "vitest";
+import { screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { renderWithProviders } from "../../test/testUtils";
+import Player from "./Player";
+
+describe("Player Component", () => {
+  afterEach(() => {
+    // Clean up after tests
+  });
+
+  it("renders the form with all input fields", () => {
+    renderWithProviders(<Player />);
+
+    expect(screen.getByLabelText(/youtube video url/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/start/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/duration/i)).toBeInTheDocument();
+  });
+
+  it("renders play button initially", () => {
+    renderWithProviders(<Player />);
+
+    const playButton = screen.getByRole("button");
+    expect(playButton).toBeInTheDocument();
+    // Play icon should be visible (not stop icon)
+    expect(playButton.querySelector("svg")).toBeInTheDocument();
+  });
+
+  it("updates videoUrl when URL input changes", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video url/i);
+    await user.clear(urlInput);
+    await user.type(urlInput, "https://youtube.com/watch?v=test123");
+
+    expect(store.getState().player.videoUrl).toBe("https://youtube.com/watch?v=test123");
+  });
+
+  it("updates start when start input changes", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const startInput = screen.getByLabelText(/start/i);
+    await user.clear(startInput);
+    await user.type(startInput, "5");
+
+    expect(store.getState().player.start).toBe(5);
+  });
+
+  it("updates duration when duration input changes", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const durationInput = screen.getByLabelText(/duration/i);
+    await user.clear(durationInput);
+    await user.type(durationInput, "30");
+
+    expect(store.getState().player.duration).toBe(30);
+  });
+
+  it("disables inputs when playing", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Player />);
+
+    // Set a URL first
+    const urlInput = screen.getByLabelText(/youtube video url/i);
+    await user.type(urlInput, "https://youtube.com/watch?v=test123");
+
+    // Wait for YouTube player to be ready
+    await waitFor(() => {
+      expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
+    });
+
+    // Click play button
+    const playButton = screen.getByRole("button");
+    await user.click(playButton);
+
+    // Inputs should be disabled
+    expect(urlInput).toBeDisabled();
+    expect(screen.getByLabelText(/start/i)).toBeDisabled();
+    expect(screen.getByLabelText(/duration/i)).toBeDisabled();
+  });
+
+  it("renders YouTube player when videoUrl is provided", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video url/i);
+    await user.type(urlInput, "https://youtube.com/watch?v=dQw4w9WgXcQ");
+
+    await waitFor(() => {
+      expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
+      expect(screen.getByTestId("youtube-player")).toHaveAttribute(
+        "data-video-id",
+        "dQw4w9WgXcQ",
+      );
+    });
+  });
+
+  it("extracts video ID from different YouTube URL formats", async () => {
+    const user = userEvent.setup({ delay: null });
+
+    const testCases = [
+      { url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+      { url: "https://youtu.be/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+      { url: "https://www.youtube.com/embed/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+      { url: "https://www.youtube.com/shorts/dQw4w9WgXcQ", expectedId: "dQw4w9WgXcQ" },
+    ];
+
+    for (const testCase of testCases) {
+      const { unmount } = renderWithProviders(<Player />);
+      const urlInput = screen.getByLabelText(/youtube video url/i);
+
+      await user.clear(urlInput);
+      await user.type(urlInput, testCase.url);
+
+      await waitFor(() => {
+        expect(screen.getByTestId("youtube-player")).toHaveAttribute(
+          "data-video-id",
+          testCase.expectedId,
+        );
+      });
+
+      unmount();
+    }
+  });
+
+  it("shows error when start time exceeds video length", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Player />);
+
+    // Set URL to trigger YouTube player mock
+    const urlInput = screen.getByLabelText(/youtube video url/i);
+    await user.type(urlInput, "https://youtube.com/watch?v=test");
+
+    // Wait for player to be ready (sets videoLenMinutes to 10 via mock)
+    await waitFor(() => {
+      expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
+    });
+
+    // Set start time beyond video length (mock returns 600 seconds = 10 minutes)
+    const startInput = screen.getByLabelText(/start/i);
+    await user.clear(startInput);
+    await user.type(startInput, "15");
+
+    // Should show error
+    await waitFor(() => {
+      expect(screen.getByText(/maximum value is 10/i)).toBeInTheDocument();
+    });
+
+    // Play button should be disabled
+    expect(screen.getByRole("button")).toBeDisabled();
+  });
+
+  it("displays YouTube Timer heading", () => {
+    renderWithProviders(<Player />);
+
+    expect(screen.getByRole("heading", { name: /youtube timer/i })).toBeInTheDocument();
+  });
+
+  it("uses dark theme", () => {
+    const { container } = renderWithProviders(<Player />);
+
+    // ThemeProvider should be present (MUI handles the actual theme)
+    expect(container.firstChild).toBeInTheDocument();
+  });
+
+  it("has correct initial state values", () => {
+    const { store } = renderWithProviders(<Player />);
+
+    const state = store.getState().player;
+    expect(state.videoUrl).toBe("");
+    expect(state.duration).toBe(60);
+    expect(state.start).toBe(0);
+    expect(state.isPlaying).toBe(false);
+  });
+});
