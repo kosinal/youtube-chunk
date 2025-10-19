@@ -102,15 +102,23 @@ describe("Player Component", () => {
       expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
     });
 
+    // After loading, button should say "Clear Videos"
+    const clearButton = screen.getByRole("button", { name: /clear videos/i });
+    expect(clearButton).toBeInTheDocument();
+
+    // URL input should not be visible (replaced by VideoList)
+    expect(
+      screen.queryByLabelText(/youtube video urls/i),
+    ).not.toBeInTheDocument();
+
     // Click play button
     const playButton = screen.getByLabelText(/delete/i);
     await user.click(playButton);
 
     // Inputs should be disabled
-    expect(urlInput).toBeDisabled();
     expect(screen.getByLabelText(/start/i)).toBeDisabled();
     expect(screen.getByLabelText(/duration/i)).toBeDisabled();
-    expect(loadButton).toBeDisabled();
+    expect(clearButton).toBeDisabled();
   });
 
   it("renders YouTube player when videos are loaded", async () => {
@@ -300,5 +308,50 @@ describe("Player Component", () => {
       expect(state.videos[0].id).toBe("dQw4w9WgXcQ");
       expect(state.videos[1].id).toBe("jNQXAC9IVRw");
     });
+  });
+
+  it("clears videos and restores textarea with URLs when Clear Videos is clicked", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    const testUrls =
+      "https://youtube.com/watch?v=dQw4w9WgXcQ,https://youtube.com/watch?v=jNQXAC9IVRw";
+
+    fireEvent.change(urlInput, {
+      target: { value: testUrls },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
+
+    // Verify videos are loaded and textarea is hidden
+    await waitFor(() => {
+      expect(store.getState().player.videos).toHaveLength(2);
+    });
+    expect(
+      screen.queryByLabelText(/youtube video urls/i),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /clear videos/i }),
+    ).toBeInTheDocument();
+
+    // Click Clear Videos
+    const clearButton = screen.getByRole("button", { name: /clear videos/i });
+    await user.click(clearButton);
+
+    // Verify videos are cleared and textarea is restored with URLs (with space after comma)
+    await waitFor(() => {
+      expect(store.getState().player.videos).toHaveLength(0);
+    });
+
+    const restoredUrlInput = screen.getByLabelText(/youtube video urls/i);
+    expect(restoredUrlInput).toBeInTheDocument();
+    expect(restoredUrlInput).toHaveValue(
+      "https://youtube.com/watch?v=dQw4w9WgXcQ, https://youtube.com/watch?v=jNQXAC9IVRw",
+    );
+    expect(
+      screen.getByRole("button", { name: /load videos/i }),
+    ).toBeInTheDocument();
   });
 });
