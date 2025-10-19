@@ -7,7 +7,7 @@ import type {
 } from "@reduxjs/toolkit";
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
-import { playerSlice } from "../features/youtube/playerSlice";
+import { playerSlice } from "../components/Player/playerSlice";
 import logger from "redux-logger";
 
 // `combineSlices` automatically combines the reducers using
