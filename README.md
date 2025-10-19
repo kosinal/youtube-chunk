@@ -31,17 +31,20 @@ A Progressive Web App (PWA) for playing specific segments of YouTube videos with
 ### Installation
 
 1. Clone the repository:
+
 ```bash
 git clone https://github.com/kosinal/vite-youtube-chunker.git
 cd vite-youtube-chunker
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -126,6 +129,7 @@ The app uses Redux Toolkit with automatic localStorage persistence:
 The app is configured for GitHub Pages deployment:
 
 1. Build the project:
+
 ```bash
 npm run build
 ```
