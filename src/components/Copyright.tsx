@@ -30,7 +30,7 @@ export default function Copyright() {
       >
         © {currentYear} Lukas Kosina · v{__APP_VERSION__} ·{" "}
         <Link
-          href="https://github.com/kosinal/vite-youtube-chunker/blob/master/LICENSE"
+          href="https://github.com/kosinal/youtube-chunk/blob/master/LICENSE"
           target="_blank"
           rel="noopener noreferrer"
           sx={{
