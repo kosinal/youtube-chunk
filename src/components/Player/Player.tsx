@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useAppDispatch, useAppSelector } from "../../app/hooks";
 import type { YouTubePlayer } from "react-youtube";
 import YouTube from "react-youtube";
@@ -55,9 +55,12 @@ const Player: React.FC = () => {
 
   const minute = 60 * 1000;
 
-  if (isError) {
-    dispatch(setPlaying(false));
-  }
+  // Stop playing if there's an error (start time exceeds video length)
+  useEffect(() => {
+    if (isError && isPlaying) {
+      dispatch(setPlaying(false));
+    }
+  }, [isError, isPlaying, dispatch]);
   const handlePlayPause = () => {
     if (isPlaying) {
       player?.pauseVideo();
