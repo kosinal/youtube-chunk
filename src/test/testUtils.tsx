@@ -39,5 +39,6 @@ export function renderWithProviders(
 }
 
 // Re-export everything from React Testing Library
+/* eslint-disable react-refresh/only-export-components */
 export * from "@testing-library/react";
 export { renderWithProviders as render };

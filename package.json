@@ -13,7 +13,7 @@
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
-    "lint:fix": "eslint . --ext .ts,.tsx --fix",
+    "lint:fix": "eslint . --fix",
     "check": "npm run format && npm run lint:fix && npm run test && npm run build"
   },
   "dependencies": {

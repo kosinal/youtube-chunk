@@ -7,7 +7,9 @@ describe("Copyright Component", () => {
     render(<Copyright />);
 
     const currentYear = new Date().getFullYear();
-    expect(screen.getByText(new RegExp(currentYear.toString()))).toBeInTheDocument();
+    expect(
+      screen.getByText(new RegExp(currentYear.toString())),
+    ).toBeInTheDocument();
     expect(screen.getByText(/Lukas Kosina/i)).toBeInTheDocument();
   });
 
@@ -22,7 +24,10 @@ describe("Copyright Component", () => {
 
     const licenseLink = screen.getByRole("link", { name: /license/i });
     expect(licenseLink).toBeInTheDocument();
-    expect(licenseLink).toHaveAttribute("href", expect.stringContaining("github.com"));
+    expect(licenseLink).toHaveAttribute(
+      "href",
+      expect.stringContaining("github.com"),
+    );
     expect(licenseLink).toHaveAttribute("target", "_blank");
     expect(licenseLink).toHaveAttribute("rel", "noopener noreferrer");
   });

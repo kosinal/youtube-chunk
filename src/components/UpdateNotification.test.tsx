@@ -8,19 +8,27 @@ describe("UpdateNotification Component", () => {
     const onUpdate = vi.fn();
     const onClose = vi.fn();
 
-    render(<UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />);
+    render(
+      <UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />,
+    );
 
     expect(screen.getByText(/new version is available/i)).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /update now/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /update now/i }),
+    ).toBeInTheDocument();
   });
 
   it("does not render when open prop is false", () => {
     const onUpdate = vi.fn();
     const onClose = vi.fn();
 
-    render(<UpdateNotification open={false} onUpdate={onUpdate} onClose={onClose} />);
+    render(
+      <UpdateNotification open={false} onUpdate={onUpdate} onClose={onClose} />,
+    );
 
-    expect(screen.queryByText(/new version is available/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByText(/new version is available/i),
+    ).not.toBeInTheDocument();
   });
 
   it("calls onUpdate when Update Now button is clicked", async () => {
@@ -28,7 +36,9 @@ describe("UpdateNotification Component", () => {
     const onClose = vi.fn();
     const user = userEvent.setup();
 
-    render(<UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />);
+    render(
+      <UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />,
+    );
 
     const updateButton = screen.getByRole("button", { name: /update now/i });
     await user.click(updateButton);
@@ -40,7 +50,9 @@ describe("UpdateNotification Component", () => {
     const onUpdate = vi.fn();
     const onClose = vi.fn();
 
-    render(<UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />);
+    render(
+      <UpdateNotification open={true} onUpdate={onUpdate} onClose={onClose} />,
+    );
 
     // Alert has onClose prop passed through (rendered but MUI doesn't show close icon by default without closeText)
     // The onClose is available on both Snackbar and Alert components
@@ -69,6 +81,8 @@ describe("UpdateNotification Component", () => {
     );
 
     // Snackbar should render (positioning handled by MUI)
-    expect(container.querySelector('[role="presentation"]')).toBeInTheDocument();
+    expect(
+      container.querySelector('[role="presentation"]'),
+    ).toBeInTheDocument();
   });
 });

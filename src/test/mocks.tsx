@@ -18,14 +18,30 @@ export const createMockYouTubePlayer = () => ({
 
 // Mock YouTube component
 vi.mock("react-youtube", () => ({
-  default: ({ onReady, videoId, className }: any) => {
+  default: ({
+    onReady,
+    videoId,
+    className,
+  }: {
+    onReady?: (event: {
+      target: ReturnType<typeof createMockYouTubePlayer>;
+    }) => void;
+    videoId?: string;
+    className?: string;
+  }) => {
     // Simulate onReady callback after mount
     if (onReady) {
       setTimeout(() => {
         onReady({ target: createMockYouTubePlayer() });
       }, 0);
     }
-    return <div data-testid="youtube-player" data-video-id={videoId} className={className} />;
+    return (
+      <div
+        data-testid="youtube-player"
+        data-video-id={videoId}
+        className={className}
+      />
+    );
   },
 }));
 

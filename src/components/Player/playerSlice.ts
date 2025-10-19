@@ -1,8 +1,14 @@
 import { createAppSlice } from "../../app/createAppSlice";
 import type { PayloadAction } from "@reduxjs/toolkit";
 
+export interface Video {
+  url: string;
+  id: string;
+}
+
 interface AppState {
-  videoUrl: string;
+  videos: Video[];
+  currentVideoIndex: number;
   duration: number;
   start: number;
   delayedStart: number;
@@ -11,7 +17,8 @@ interface AppState {
 }
 
 const initialState: AppState = {
-  videoUrl: "",
+  videos: [],
+  currentVideoIndex: 0,
   duration: 60,
   start: 0,
   delayedStart: 0,
@@ -23,9 +30,15 @@ export const playerSlice = createAppSlice({
   name: "player",
   initialState,
   reducers: (create) => ({
-    setVideoUrl: create.reducer((state, action: PayloadAction<string>) => {
-      state.videoUrl = action.payload;
+    setVideos: create.reducer((state, action: PayloadAction<Video[]>) => {
+      state.videos = action.payload;
+      state.currentVideoIndex = 0;
     }),
+    setCurrentVideoIndex: create.reducer(
+      (state, action: PayloadAction<number>) => {
+        state.currentVideoIndex = action.payload;
+      },
+    ),
     setDuration: create.reducer((state, action: PayloadAction<number>) => {
       state.duration = action.payload;
     }),
@@ -40,7 +53,10 @@ export const playerSlice = createAppSlice({
     },
   }),
   selectors: {
-    selectVideoUrl: (state) => state.videoUrl,
+    selectVideos: (state) => state.videos,
+    selectCurrentVideoIndex: (state) => state.currentVideoIndex,
+    selectCurrentVideo: (state) =>
+      state.videos[state.currentVideoIndex] || null,
     selectDuration: (state) => state.duration,
     selectStart: (state) => state.start,
     selectIsPlaying: (state) => state.isPlaying,
@@ -48,10 +64,18 @@ export const playerSlice = createAppSlice({
   },
 });
 
-export const { setVideoUrl, setDuration, setStart, setPlaying, setStartTime } =
-  playerSlice.actions;
 export const {
-  selectVideoUrl,
+  setVideos,
+  setCurrentVideoIndex,
+  setDuration,
+  setStart,
+  setPlaying,
+  setStartTime,
+} = playerSlice.actions;
+export const {
+  selectVideos,
+  selectCurrentVideoIndex,
+  selectCurrentVideo,
   selectDuration,
   selectStart,
   selectIsPlaying,

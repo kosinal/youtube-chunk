@@ -1,21 +1,26 @@
 import { describe, it, expect } from "vitest";
 import {
   playerSlice,
-  setVideoUrl,
+  setVideos,
+  setCurrentVideoIndex,
   setDuration,
   setStart,
   setPlaying,
   setStartTime,
-  selectVideoUrl,
+  selectVideos,
+  selectCurrentVideoIndex,
+  selectCurrentVideo,
   selectDuration,
   selectStart,
   selectIsPlaying,
   selectStartTime,
 } from "./playerSlice";
+import type { Video } from "./playerSlice";
 
 describe("playerSlice", () => {
   const initialState = {
-    videoUrl: "",
+    videos: [],
+    currentVideoIndex: 0,
     duration: 60,
     start: 0,
     delayedStart: 0,
@@ -28,18 +33,40 @@ describe("playerSlice", () => {
       const state = playerSlice.reducer(undefined, { type: "unknown" });
 
       expect(state).toMatchObject({
-        videoUrl: "",
+        videos: [],
+        currentVideoIndex: 0,
         duration: 60,
         start: 0,
         isPlaying: false,
       });
     });
 
-    it("should handle setVideoUrl", () => {
-      const testUrl = "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-      const state = playerSlice.reducer(initialState, setVideoUrl(testUrl));
+    it("should handle setVideos", () => {
+      const testVideos: Video[] = [
+        {
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          id: "dQw4w9WgXcQ",
+        },
+        { url: "https://www.youtube.com/watch?v=abc123", id: "abc123" },
+      ];
+      const state = playerSlice.reducer(initialState, setVideos(testVideos));
 
-      expect(state.videoUrl).toBe(testUrl);
+      expect(state.videos).toEqual(testVideos);
+      expect(state.currentVideoIndex).toBe(0);
+    });
+
+    it("should handle setCurrentVideoIndex", () => {
+      const testVideos: Video[] = [
+        {
+          url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+          id: "dQw4w9WgXcQ",
+        },
+        { url: "https://www.youtube.com/watch?v=abc123", id: "abc123" },
+      ];
+      let state = playerSlice.reducer(initialState, setVideos(testVideos));
+      state = playerSlice.reducer(state, setCurrentVideoIndex(1));
+
+      expect(state.currentVideoIndex).toBe(1);
     });
 
     it("should handle setDuration", () => {
@@ -71,13 +98,17 @@ describe("playerSlice", () => {
     });
 
     it("should handle multiple actions sequentially", () => {
-      let state = playerSlice.reducer(initialState, setVideoUrl("https://youtube.com/test"));
+      const testVideos: Video[] = [
+        { url: "https://youtube.com/test", id: "test123" },
+      ];
+      let state = playerSlice.reducer(initialState, setVideos(testVideos));
       state = playerSlice.reducer(state, setDuration(90));
       state = playerSlice.reducer(state, setStart(15));
       state = playerSlice.reducer(state, setPlaying(true));
 
       expect(state).toMatchObject({
-        videoUrl: "https://youtube.com/test",
+        videos: testVideos,
+        currentVideoIndex: 0,
         duration: 90,
         start: 15,
         isPlaying: true,
@@ -86,9 +117,15 @@ describe("playerSlice", () => {
   });
 
   describe("selectors", () => {
+    const testVideos: Video[] = [
+      { url: "https://youtube.com/watch?v=test123", id: "test123" },
+      { url: "https://youtube.com/watch?v=abc456", id: "abc456" },
+    ];
+
     const mockState = {
       player: {
-        videoUrl: "https://youtube.com/watch?v=test123",
+        videos: testVideos,
+        currentVideoIndex: 0,
         duration: 45,
         start: 10,
         delayedStart: 0,
@@ -97,8 +134,26 @@ describe("playerSlice", () => {
       },
     };
 
-    it("selectVideoUrl should return video URL", () => {
-      expect(selectVideoUrl(mockState)).toBe("https://youtube.com/watch?v=test123");
+    it("selectVideos should return videos array", () => {
+      expect(selectVideos(mockState)).toEqual(testVideos);
+    });
+
+    it("selectCurrentVideoIndex should return current index", () => {
+      expect(selectCurrentVideoIndex(mockState)).toBe(0);
+    });
+
+    it("selectCurrentVideo should return current video", () => {
+      expect(selectCurrentVideo(mockState)).toEqual(testVideos[0]);
+    });
+
+    it("selectCurrentVideo should return null when no videos", () => {
+      const emptyState = {
+        player: {
+          ...mockState.player,
+          videos: [],
+        },
+      };
+      expect(selectCurrentVideo(emptyState)).toBe(null);
     });
 
     it("selectDuration should return duration", () => {
