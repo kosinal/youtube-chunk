@@ -21,6 +21,10 @@ A Progressive Web App (PWA) for playing specific segments of YouTube videos with
 - **YouTube Integration**: react-youtube library
 - **PWA**: vite-plugin-pwa with service worker support
 
+## Demo
+
+You can see running application on [Github Pages](https://kosinal.github.io/youtube-chunk/).
+
 ## 🚀 Getting Started
 
 ### Prerequisites
