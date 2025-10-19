@@ -34,9 +34,48 @@ const loadStateFromLocalStorage = (): Partial<RootState> => {
     if (serializedState === null) {
       return {};
     }
-    return JSON.parse(serializedState);
+    const parsedState = JSON.parse(serializedState);
+
+    // Validate and migrate state structure
+    if (parsedState && typeof parsedState === "object") {
+      // Check if player slice exists and has the expected structure
+      if (parsedState.player) {
+        // Ensure videos is an array
+        if (!Array.isArray(parsedState.player.videos)) {
+          console.warn(
+            "Invalid state structure detected, resetting to initial state",
+          );
+          localStorage.removeItem("reduxState");
+          return {};
+        }
+
+        // Ensure all required fields exist
+        const requiredFields = [
+          "videos",
+          "currentVideoIndex",
+          "duration",
+          "start",
+          "isPlaying",
+          "startTime",
+        ];
+        const hasAllFields = requiredFields.every(
+          (field) => field in parsedState.player,
+        );
+
+        if (!hasAllFields) {
+          console.warn(
+            "Missing required fields in state, resetting to initial state",
+          );
+          localStorage.removeItem("reduxState");
+          return {};
+        }
+      }
+    }
+
+    return parsedState;
   } catch (e) {
     console.error("Could not load state from local storage", e);
+    localStorage.removeItem("reduxState");
     return {};
   }
 };
