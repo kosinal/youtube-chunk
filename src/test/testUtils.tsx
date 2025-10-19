@@ -1,22 +1,21 @@
 import { ReactElement } from "react";
 import { render, RenderOptions } from "@testing-library/react";
-import { configureStore, PreloadedState } from "@reduxjs/toolkit";
+import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { Provider } from "react-redux";
 import { playerSlice } from "../components/Player/playerSlice";
 import type { RootState } from "../app/store";
 
 // This type interface extends the default options for render from RTL
 interface ExtendedRenderOptions extends Omit<RenderOptions, "queries"> {
-  preloadedState?: PreloadedState<RootState>;
+  preloadedState?: Partial<RootState>;
   store?: ReturnType<typeof setupStore>;
 }
 
-// Create a test store function
-export function setupStore(preloadedState?: PreloadedState<RootState>) {
+// Create a test store function - matches the production store config
+export function setupStore(preloadedState?: Partial<RootState>) {
+  const rootReducer = combineSlices(playerSlice);
   return configureStore({
-    reducer: {
-      [playerSlice.reducerPath]: playerSlice.reducer,
-    },
+    reducer: rootReducer,
     preloadedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware(),
   });

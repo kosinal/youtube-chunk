@@ -40,7 +40,7 @@ describe("Player Component", () => {
     fireEvent.change(urlInput, {
       target: {
         value:
-          "https://youtube.com/watch?v=test123,https://youtube.com/watch?v=test456",
+          "https://youtube.com/watch?v=dQw4w9WgXcQ,https://youtube.com/watch?v=jNQXAC9IVRw",
       },
     });
 
@@ -57,8 +57,8 @@ describe("Player Component", () => {
 
     const state = store.getState().player;
     expect(state.videos).toHaveLength(2);
-    expect(state.videos[0].id).toBe("test123");
-    expect(state.videos[1].id).toBe("test456");
+    expect(state.videos[0].id).toBe("dQw4w9WgXcQ");
+    expect(state.videos[1].id).toBe("jNQXAC9IVRw");
     expect(state.currentVideoIndex).toBe(0);
   });
 
@@ -91,7 +91,7 @@ describe("Player Component", () => {
     // Set URLs first
     const urlInput = screen.getByLabelText(/youtube video urls/i);
     fireEvent.change(urlInput, {
-      target: { value: "https://youtube.com/watch?v=test123" },
+      target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
     });
 
     const loadButton = screen.getByRole("button", { name: /load videos/i });
@@ -180,7 +180,7 @@ describe("Player Component", () => {
     // Set URL to trigger YouTube player mock
     const urlInput = screen.getByLabelText(/youtube video urls/i);
     fireEvent.change(urlInput, {
-      target: { value: "https://youtube.com/watch?v=test" },
+      target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
     });
 
     const loadButton = screen.getByRole("button", { name: /load videos/i });
@@ -239,7 +239,7 @@ describe("Player Component", () => {
     fireEvent.change(urlInput, {
       target: {
         value:
-          "https://youtube.com/watch?v=abc123,https://youtube.com/watch?v=def456",
+          "https://youtube.com/watch?v=dQw4w9WgXcQ,https://youtube.com/watch?v=jNQXAC9IVRw",
       },
     });
 
@@ -266,7 +266,7 @@ describe("Player Component", () => {
     fireEvent.change(urlInput, {
       target: {
         value:
-          "https://youtube.com/watch?v=abc123;https://youtube.com/watch?v=def456",
+          "https://youtube.com/watch?v=dQw4w9WgXcQ;https://youtube.com/watch?v=jNQXAC9IVRw",
       },
     });
 
@@ -287,7 +287,7 @@ describe("Player Component", () => {
     fireEvent.change(urlInput, {
       target: {
         value:
-          "https://youtube.com/watch?v=abc123,invalid-url,https://youtube.com/watch?v=def456",
+          "https://youtube.com/watch?v=dQw4w9WgXcQ,invalid-url,https://youtube.com/watch?v=jNQXAC9IVRw",
       },
     });
 
@@ -297,8 +297,8 @@ describe("Player Component", () => {
     await waitFor(() => {
       const state = store.getState().player;
       expect(state.videos).toHaveLength(2);
-      expect(state.videos[0].id).toBe("abc123");
-      expect(state.videos[1].id).toBe("def456");
+      expect(state.videos[0].id).toBe("dQw4w9WgXcQ");
+      expect(state.videos[1].id).toBe("jNQXAC9IVRw");
     });
   });
 });
