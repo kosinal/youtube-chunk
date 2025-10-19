@@ -124,6 +124,13 @@ const Player: React.FC = () => {
     dispatch(setVideos(parsedVideos));
   };
 
+  const handleClearVideos = () => {
+    // Convert current videos back to URL string
+    const urlString = videos.map((video) => video.url).join(", ");
+    setUrlsInput(urlString);
+    dispatch(setVideos([]));
+  };
+
   const parseUrls = (input: string): Video[] => {
     return input
       .split(/[,;]/)
@@ -212,29 +219,45 @@ const Player: React.FC = () => {
         </Box>
         <Box component="form" sx={{ mt: 3 }}>
           <Grid container spacing={2}>
-            <Grid size={12}>
-              <TextField
-                name="video_urls"
-                required
-                fullWidth
-                multiline
-                rows={4}
-                id="video_urls"
-                label="YouTube Video URLs (separated by , or ;)"
-                value={urlsInput}
-                disabled={isPlaying}
-                onChange={(e) => setUrlsInput(e.target.value)}
-                placeholder="https://www.youtube.com/watch?v=..., https://youtu.be/..."
-              />
-            </Grid>
+            {videos.length === 0 && (
+              <Grid size={12}>
+                <TextField
+                  name="video_urls"
+                  required
+                  fullWidth
+                  multiline
+                  rows={4}
+                  id="video_urls"
+                  label="YouTube Video URLs (separated by , or ;)"
+                  value={urlsInput}
+                  disabled={isPlaying}
+                  onChange={(e) => setUrlsInput(e.target.value)}
+                  placeholder="https://www.youtube.com/watch?v=..., https://youtu.be/..."
+                />
+              </Grid>
+            )}
+            {videos.length > 0 && (
+              <Grid size={12}>
+                <VideoList
+                  videos={videos}
+                  currentIndex={currentVideoIndex}
+                  onVideoSelect={handleVideoSelect}
+                  isPlaying={isPlaying}
+                />
+              </Grid>
+            )}
             <Grid size={12}>
               <Button
                 fullWidth
                 variant="contained"
-                onClick={handleLoadVideos}
-                disabled={isPlaying || !urlsInput.trim()}
+                onClick={
+                  videos.length === 0 ? handleLoadVideos : handleClearVideos
+                }
+                disabled={
+                  isPlaying || (videos.length === 0 && !urlsInput.trim())
+                }
               >
-                Load Videos
+                {videos.length === 0 ? "Load Videos" : "Clear Videos"}
               </Button>
             </Grid>
             <Grid size={6}>
@@ -269,16 +292,6 @@ const Player: React.FC = () => {
                 onChange={(e) => dispatch(setDuration(Number(e.target.value)))}
               />
             </Grid>
-            {videos.length > 0 && (
-              <Grid size={12}>
-                <VideoList
-                  videos={videos}
-                  currentIndex={currentVideoIndex}
-                  onVideoSelect={handleVideoSelect}
-                  isPlaying={isPlaying}
-                />
-              </Grid>
-            )}
             <Grid size={12}>
               <IconButton
                 type="button"
