@@ -382,6 +382,11 @@ const Player: React.FC = () => {
                 value={start}
                 disabled={isPlaying}
                 onChange={(e) => dispatch(setStart(Number(e.target.value)))}
+                slotProps={{
+                  input: {
+                    inputMode: "numeric",
+                  },
+                }}
                 {...(isError
                   ? {
                       error: true,
@@ -401,6 +406,11 @@ const Player: React.FC = () => {
                 value={duration}
                 disabled={isPlaying}
                 onChange={(e) => dispatch(setDuration(Number(e.target.value)))}
+                slotProps={{
+                  input: {
+                    inputMode: "numeric",
+                  },
+                }}
               />
             </Grid>
             <Grid size={12}>
