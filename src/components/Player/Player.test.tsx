@@ -46,7 +46,7 @@ describe("Player Component", () => {
   it("renders play button initially disabled", () => {
     renderWithProviders(<Player />);
 
-    const playButton = screen.getByLabelText(/delete/i);
+    const playButton = screen.getByLabelText(/play-pause/i);
     expect(playButton).toBeInTheDocument();
     expect(playButton).toBeDisabled();
   });
@@ -133,7 +133,7 @@ describe("Player Component", () => {
     ).not.toBeInTheDocument();
 
     // Click play button
-    const playButton = screen.getByLabelText(/delete/i);
+    const playButton = screen.getByLabelText(/play-pause/i);
     await user.click(playButton);
 
     // Inputs should be disabled
@@ -231,7 +231,7 @@ describe("Player Component", () => {
     });
 
     // Play button should be disabled
-    expect(screen.getByLabelText(/delete/i)).toBeDisabled();
+    expect(screen.getByLabelText(/play-pause/i)).toBeDisabled();
   });
 
   it("displays YouTube Timer heading", () => {

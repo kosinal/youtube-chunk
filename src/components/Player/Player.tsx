@@ -18,6 +18,7 @@ import {
   selectStart,
   setStartTime,
   selectStartTime,
+  removeVideo,
 } from "./playerSlice";
 import VideoList from "./VideoList";
 import type { Video } from "./playerSlice";
@@ -209,6 +210,10 @@ const Player: React.FC = () => {
     }
   };
 
+  const handleDeleteVideo = (index: number) => {
+    dispatch(removeVideo(index));
+  };
+
   const handlePlayPause = () => {
     if (isPlaying) {
       try {
@@ -341,6 +346,7 @@ const Player: React.FC = () => {
                   videos={videos}
                   currentIndex={currentVideoIndex}
                   onVideoSelect={handleVideoSelect}
+                  onDeleteVideo={handleDeleteVideo}
                   isPlaying={isPlaying}
                 />
               </Grid>
@@ -400,7 +406,7 @@ const Player: React.FC = () => {
             <Grid size={12}>
               <IconButton
                 type="button"
-                aria-label="delete"
+                aria-label="play-pause"
                 sx={{ mt: 3, mb: 2 }}
                 onClick={handlePlayPause}
                 disabled={isError || videos.length === 0}
