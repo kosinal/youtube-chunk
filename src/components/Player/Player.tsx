@@ -89,15 +89,31 @@ const Player: React.FC = () => {
     if (isPlaying && player && currentVideo) {
       const newStartTime = new Date().toISOString();
       dispatch(setStartTime(newStartTime));
-      player.seekTo(start * 60, true);
-      player.playVideo();
+
+      // Add safety checks to prevent errors when player is transitioning
+      try {
+        if (player.seekTo && typeof player.seekTo === "function") {
+          player.seekTo(start * 60, true);
+        }
+        if (player.playVideo && typeof player.playVideo === "function") {
+          player.playVideo();
+        }
+      } catch (error) {
+        console.warn("Player method call failed during transition:", error);
+      }
 
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
 
       timeoutRef.current = setTimeout(() => {
-        player.pauseVideo();
+        try {
+          if (player.pauseVideo && typeof player.pauseVideo === "function") {
+            player.pauseVideo();
+          }
+        } catch (error) {
+          console.warn("Player pause failed:", error);
+        }
         changeMinutesPlayed(start, newStartTime);
 
         if (currentVideoIndex < videos.length - 1) {
@@ -195,7 +211,11 @@ const Player: React.FC = () => {
 
   const handlePlayPause = () => {
     if (isPlaying) {
-      player?.pauseVideo();
+      try {
+        player?.pauseVideo();
+      } catch (error) {
+        console.warn("Failed to pause player:", error);
+      }
       dispatch(setPlaying(false));
       changeMinutesPlayed(start, startTime);
       if (timeoutRef.current) {
@@ -204,12 +224,21 @@ const Player: React.FC = () => {
       }
     } else {
       if (player) {
-        player.playVideo();
+        try {
+          player.playVideo();
+        } catch (error) {
+          console.warn("Failed to play video:", error);
+          return;
+        }
         dispatch(setPlaying(true));
         const newStartTime = new Date().toISOString();
         dispatch(setStartTime(newStartTime));
         timeoutRef.current = setTimeout(() => {
-          player.pauseVideo();
+          try {
+            player.pauseVideo();
+          } catch (error) {
+            console.warn("Failed to pause in timeout:", error);
+          }
           changeMinutesPlayed(start, newStartTime);
 
           if (currentVideoIndex < videos.length - 1) {
@@ -238,7 +267,11 @@ const Player: React.FC = () => {
     }
 
     // Pause video (defensive)
-    player?.pauseVideo();
+    try {
+      player?.pauseVideo();
+    } catch (error) {
+      console.warn("Failed to pause on video end:", error);
+    }
 
     // Reset start to 0 for next video
     dispatch(setStart(0));

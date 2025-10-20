@@ -1,0 +1,38 @@
+.scrollContainer {
+  display: block;
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.scrollText {
+  display: inline-block;
+  white-space: nowrap;
+}
+
+/* Keyframes for scrolling animation */
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  15% {
+    transform: translateX(0);
+  }
+  85% {
+    transform: translateX(calc(-100% + 100px));
+  }
+  100% {
+    transform: translateX(calc(-100% + 100px));
+  }
+}
+
+/* Auto-scroll for selected items */
+.scrollingText {
+  animation: scroll 8s linear infinite;
+}
+
+/* Scroll on hover for non-selected items */
+.scrollContainer:hover .scrollOnHoverText {
+  animation: scroll 8s linear infinite;
+}
