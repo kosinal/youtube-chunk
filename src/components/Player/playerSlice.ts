@@ -52,6 +52,17 @@ export const playerSlice = createAppSlice({
     setStartTime(state, action: PayloadAction<string>) {
       state.startTime = action.payload;
     },
+    removeVideo: create.reducer((state, action: PayloadAction<number>) => {
+      const indexToRemove = action.payload;
+      state.videos = state.videos.filter((_, index) => index !== indexToRemove);
+
+      // Adjust currentVideoIndex if needed
+      if (state.currentVideoIndex >= state.videos.length) {
+        state.currentVideoIndex = Math.max(0, state.videos.length - 1);
+      } else if (indexToRemove < state.currentVideoIndex) {
+        state.currentVideoIndex -= 1;
+      }
+    }),
   }),
   selectors: {
     selectVideos: (state) => state.videos,
@@ -72,6 +83,7 @@ export const {
   setStart,
   setPlaying,
   setStartTime,
+  removeVideo,
 } = playerSlice.actions;
 export const {
   selectVideos,

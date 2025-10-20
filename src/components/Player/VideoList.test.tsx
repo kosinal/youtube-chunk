@@ -29,6 +29,7 @@ describe("VideoList", () => {
         videos={[]}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -41,6 +42,7 @@ describe("VideoList", () => {
         videos={mockVideos}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -53,6 +55,7 @@ describe("VideoList", () => {
         videos={mockVideos}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -70,6 +73,7 @@ describe("VideoList", () => {
         videos={mockVideos}
         currentIndex={1}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -89,6 +93,7 @@ describe("VideoList", () => {
         videos={mockVideos}
         currentIndex={0}
         onVideoSelect={mockOnVideoSelect}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -105,6 +110,7 @@ describe("VideoList", () => {
         videos={mockVideos}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={true}
       />,
     );
@@ -131,6 +137,7 @@ describe("VideoList", () => {
         videos={singleVideo}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -149,6 +156,7 @@ describe("VideoList", () => {
         videos={videosWithoutTitles}
         currentIndex={0}
         onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -157,6 +165,100 @@ describe("VideoList", () => {
       expect(
         screen.getByText(`${index + 1}. ${video.url}`),
       ).toBeInTheDocument();
+    });
+  });
+
+  it("renders delete icon for each video", () => {
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        isPlaying={false}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByLabelText("delete");
+    expect(deleteButtons).toHaveLength(mockVideos.length);
+  });
+
+  it("shows pending delete state on first delete click", async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteVideo = vi.fn();
+
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={mockOnDeleteVideo}
+        isPlaying={false}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByLabelText("delete");
+    await user.click(deleteButtons[1]);
+
+    expect(mockOnDeleteVideo).not.toHaveBeenCalled();
+  });
+
+  it("calls onDeleteVideo on second delete click", async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteVideo = vi.fn();
+
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={mockOnDeleteVideo}
+        isPlaying={false}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByLabelText("delete");
+    await user.click(deleteButtons[1]);
+    await user.click(deleteButtons[1]);
+
+    expect(mockOnDeleteVideo).toHaveBeenCalledWith(1);
+  });
+
+  it("resets pending delete when clicking different delete icon", async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteVideo = vi.fn();
+
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={mockOnDeleteVideo}
+        isPlaying={false}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByLabelText("delete");
+    await user.click(deleteButtons[0]);
+    await user.click(deleteButtons[1]);
+
+    expect(mockOnDeleteVideo).not.toHaveBeenCalled();
+  });
+
+  it("disables delete buttons when playing", () => {
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        isPlaying={true}
+      />,
+    );
+
+    const deleteButtons = screen.getAllByLabelText("delete");
+    deleteButtons.forEach((button) => {
+      expect(button).toBeDisabled();
     });
   });
 });
