@@ -1,4 +1,5 @@
 import { Alert, Button, Snackbar } from "@mui/material";
+import styles from "./UpdateNotification.module.css";
 
 interface UpdateNotificationProps {
   open: boolean;
@@ -25,7 +26,7 @@ export default function UpdateNotification({
           </Button>
         }
         onClose={onClose}
-        sx={{ width: "100%" }}
+        className={styles.alert}
       >
         A new version is available! Click to update.
       </Alert>

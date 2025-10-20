@@ -7,6 +7,7 @@ import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import type { Video } from "./playerSlice";
 import ScrollingText from "./ScrollingText";
+import styles from "./VideoList.module.css";
 
 interface VideoListProps {
   videos: Video[];
@@ -37,7 +38,7 @@ const VideoList: React.FC<VideoListProps> = ({
               selected={index === currentIndex}
               onClick={() => onVideoSelect(index)}
               disabled={isPlaying}
-              sx={{ overflow: "hidden" }}
+              className={styles.listItemButton}
             >
               <ListItemText
                 primary={
@@ -49,7 +50,7 @@ const VideoList: React.FC<VideoListProps> = ({
                 primaryTypographyProps={{
                   fontSize: "0.875rem",
                   component: "div",
-                  sx: { overflow: "hidden", width: "100%" },
+                  className: styles.primaryText,
                 }}
               />
             </ListItemButton>
