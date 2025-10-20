@@ -261,4 +261,41 @@ describe("VideoList", () => {
       expect(button).toBeDisabled();
     });
   });
+
+  it("clears pending delete state when playlist loses focus", async () => {
+    const user = userEvent.setup();
+    const mockOnDeleteVideo = vi.fn();
+
+    render(
+      <div>
+        <VideoList
+          videos={mockVideos}
+          currentIndex={0}
+          onVideoSelect={vi.fn()}
+          onDeleteVideo={mockOnDeleteVideo}
+          isPlaying={false}
+        />
+        <button data-testid="outside-button">Outside Button</button>
+      </div>,
+    );
+
+    // Click delete button to enter pending state
+    const deleteButtons = screen.getAllByLabelText("delete");
+    await user.click(deleteButtons[1]);
+
+    // Verify pending state was set (delete not called yet)
+    expect(mockOnDeleteVideo).not.toHaveBeenCalled();
+
+    // Click outside button to trigger blur on playlist
+    const outsideButton = screen.getByTestId("outside-button");
+    await user.click(outsideButton);
+
+    // Click the same delete button again - should require first click again
+    await user.click(deleteButtons[1]);
+    expect(mockOnDeleteVideo).not.toHaveBeenCalled();
+
+    // Second click should now delete
+    await user.click(deleteButtons[1]);
+    expect(mockOnDeleteVideo).toHaveBeenCalledWith(1);
+  });
 });
