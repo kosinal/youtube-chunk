@@ -86,24 +86,6 @@ npm run format
    - Updates start position based on elapsed time
    - Saves state to localStorage for persistence
 
-## 📁 Project Structure
-
-```
-vite-youtube-chunker/
-├── src/
-│   ├── app/
-│   │   └── store.ts              # Redux store with localStorage middleware
-│   ├── features/
-│   │   └── youtube/
-│   │       ├── playerSlice.ts    # Redux slice for player state
-│   │       └── Player.tsx        # Main player component
-│   ├── App.tsx                   # Root component
-│   └── main.tsx                  # App entry point
-├── public/                       # Static assets and PWA icons
-├── vite.config.ts               # Vite and PWA configuration
-└── package.json
-```
-
 ## 🔧 Key Architecture Details
 
 ### State Management
