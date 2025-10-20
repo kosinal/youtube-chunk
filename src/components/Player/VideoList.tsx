@@ -45,8 +45,23 @@ const VideoList: React.FC<VideoListProps> = ({
     }
   };
 
+  const handleBlur = (event: React.FocusEvent): void => {
+    // Check if focus is leaving the playlist container
+    const currentTarget = event.currentTarget;
+    const relatedTarget = event.relatedTarget as Node | null;
+
+    // If relatedTarget is null or not a child of currentTarget, focus left the container
+    if (!relatedTarget || !currentTarget.contains(relatedTarget)) {
+      setPendingDeleteIndex(null);
+    }
+  };
+
   return (
-    <Paper elevation={2} sx={{ mt: 2, maxHeight: 300, overflow: "auto" }}>
+    <Paper
+      elevation={2}
+      sx={{ mt: 2, maxHeight: 300, overflow: "auto" }}
+      onBlur={handleBlur}
+    >
       <Typography variant="subtitle2" sx={{ p: 1, pb: 0 }}>
         Playlist ({videos.length} video{videos.length !== 1 ? "s" : ""})
       </Typography>
