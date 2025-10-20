@@ -1,6 +1,7 @@
 import { useState, lazy, Suspense } from "react";
 import { useRegisterSW } from "virtual:pwa-register/react";
 import "./App.css";
+import styles from "./App.module.css";
 import UpdateNotification from "./components/UpdateNotification";
 import Copyright from "./components/Copyright";
 import background from "./img/bg.jpg";
@@ -54,17 +55,14 @@ const App = () => {
 
   return (
     <div
-      className="App"
+      className={`App ${styles.appBackground}`}
       style={{
         backgroundImage: `url(${background})`,
-        backgroundSize: "cover",
       }}
     >
       <header className="App-header">
         <Suspense
-          fallback={
-            <div style={{ color: "white", padding: "20px" }}>Loading...</div>
-          }
+          fallback={<div className={styles.loadingFallback}>Loading...</div>}
         >
           <Player />
         </Suspense>

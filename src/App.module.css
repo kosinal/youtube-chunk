@@ -1,0 +1,8 @@
+.appBackground {
+  background-size: cover;
+}
+
+.loadingFallback {
+  color: white;
+  padding: 20px;
+}
