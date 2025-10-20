@@ -6,6 +6,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import type { Video } from "./playerSlice";
+import ScrollingText from "./ScrollingText";
 
 interface VideoListProps {
   videos: Video[];
@@ -36,12 +37,19 @@ const VideoList: React.FC<VideoListProps> = ({
               selected={index === currentIndex}
               onClick={() => onVideoSelect(index)}
               disabled={isPlaying}
+              sx={{ overflow: "hidden" }}
             >
               <ListItemText
-                primary={`${index + 1}. ${video.title || video.url}`}
+                primary={
+                  <ScrollingText
+                    text={`${index + 1}. ${video.title || video.url}`}
+                    isSelected={index === currentIndex}
+                  />
+                }
                 primaryTypographyProps={{
-                  noWrap: true,
                   fontSize: "0.875rem",
+                  component: "div",
+                  sx: { overflow: "hidden", width: "100%" },
                 }}
               />
             </ListItemButton>
