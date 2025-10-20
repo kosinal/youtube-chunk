@@ -37,8 +37,8 @@ You can see running application on [Github Pages](https://kosinal.github.io/yout
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/kosinal/vite-youtube-chunker.git
-cd vite-youtube-chunker
+git clone https://github.com/kosinal/youtube-chunk
+cd youtube-chunk
 ```
 
 2. Install dependencies:
