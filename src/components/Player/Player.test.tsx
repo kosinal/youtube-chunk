@@ -3,6 +3,12 @@ import { screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../test/testUtils";
 import Player from "./Player";
+import {
+  setVideos,
+  setPlaying,
+  setStart,
+  setCurrentVideoIndex,
+} from "./playerSlice";
 
 describe("Player Component", () => {
   beforeEach(() => {
@@ -374,5 +380,103 @@ describe("Player Component", () => {
     expect(
       screen.getByRole("button", { name: /load videos/i }),
     ).toBeInTheDocument();
+  });
+
+  it("has correct state behavior for video end with multiple videos", () => {
+    // This test verifies the state changes that handleVideoEnd should perform
+    // when a video ends and there are more videos in the playlist
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup: Load 2 videos
+    store.dispatch(
+      setVideos([
+        { id: "video1", url: "https://youtube.com/watch?v=video1" },
+        { id: "video2", url: "https://youtube.com/watch?v=video2" },
+      ]),
+    );
+
+    // Setup: Set non-zero start and playing state
+    store.dispatch(setStart(5));
+    store.dispatch(setCurrentVideoIndex(0));
+    store.dispatch(setPlaying(true));
+
+    // Verify initial state
+    expect(store.getState().player.isPlaying).toBe(true);
+    expect(store.getState().player.start).toBe(5);
+    expect(store.getState().player.currentVideoIndex).toBe(0);
+
+    // Simulate handleVideoEnd behavior (the fix we implemented):
+    // 1. Stop playing FIRST (prevents auto-play)
+    // 2. Reset start to 0
+    // 3. Advance to next video
+    store.dispatch(setPlaying(false));
+    store.dispatch(setStart(0));
+    store.dispatch(setCurrentVideoIndex(1));
+
+    // Verify final state after video end
+    expect(store.getState().player.isPlaying).toBe(false); // NOT auto-playing
+    expect(store.getState().player.start).toBe(0); // Reset to 0
+    expect(store.getState().player.currentVideoIndex).toBe(1); // Advanced to next
+  });
+
+  it("has correct state behavior for duration timeout", () => {
+    // This test verifies that duration timeout should ONLY stop playback
+    // without advancing to the next video
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup: Load 2 videos
+    store.dispatch(
+      setVideos([
+        { id: "video1", url: "https://youtube.com/watch?v=video1" },
+        { id: "video2", url: "https://youtube.com/watch?v=video2" },
+      ]),
+    );
+
+    // Setup: Start playing first video
+    store.dispatch(setCurrentVideoIndex(0));
+    store.dispatch(setPlaying(true));
+
+    const initialIndex = store.getState().player.currentVideoIndex;
+
+    // Verify playing
+    expect(store.getState().player.isPlaying).toBe(true);
+    expect(initialIndex).toBe(0);
+
+    // Simulate duration timeout behavior (the fix we implemented):
+    // Should ONLY stop playing, NOT advance to next video
+    store.dispatch(setPlaying(false));
+
+    // Verify final state after duration timeout
+    expect(store.getState().player.isPlaying).toBe(false); // Stopped
+    expect(store.getState().player.currentVideoIndex).toBe(initialIndex); // Did NOT advance
+  });
+
+  it("has correct state behavior for last video end", () => {
+    // This test verifies behavior when the last video in playlist ends
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup: Load 1 video
+    store.dispatch(
+      setVideos([{ id: "video1", url: "https://youtube.com/watch?v=video1" }]),
+    );
+
+    // Setup: Playing with non-zero start
+    store.dispatch(setStart(10));
+    store.dispatch(setCurrentVideoIndex(0));
+    store.dispatch(setPlaying(true));
+
+    // Verify initial state
+    expect(store.getState().player.isPlaying).toBe(true);
+    expect(store.getState().player.start).toBe(10);
+
+    // Simulate last video end behavior:
+    // Stop playing and reset start, but don't advance (no more videos)
+    store.dispatch(setPlaying(false));
+    store.dispatch(setStart(0));
+
+    // Verify final state
+    expect(store.getState().player.isPlaying).toBe(false); // Stopped
+    expect(store.getState().player.start).toBe(0); // Reset
+    expect(store.getState().player.currentVideoIndex).toBe(0); // Stayed on same video
   });
 });

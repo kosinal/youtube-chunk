@@ -20,12 +20,14 @@ export const createMockYouTubePlayer = () => ({
 vi.mock("react-youtube", () => ({
   default: ({
     onReady,
+    onEnd,
     videoId,
     className,
   }: {
     onReady?: (event: {
       target: ReturnType<typeof createMockYouTubePlayer>;
     }) => void;
+    onEnd?: () => void;
     videoId?: string;
     className?: string;
   }) => {
@@ -39,6 +41,7 @@ vi.mock("react-youtube", () => ({
       <div
         data-testid="youtube-player"
         data-video-id={videoId}
+        data-on-end={onEnd ? "true" : "false"}
         className={className}
       />
     );
