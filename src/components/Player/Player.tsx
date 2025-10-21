@@ -117,11 +117,8 @@ const Player: React.FC = () => {
         }
         changeMinutesPlayed(start, newStartTime);
 
-        if (currentVideoIndex < videos.length - 1) {
-          dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
-        } else {
-          dispatch(setPlaying(false));
-        }
+        // When duration expires, just stop - don't advance to next video
+        dispatch(setPlaying(false));
       }, duration * minute);
     }
   }, [
@@ -246,12 +243,8 @@ const Player: React.FC = () => {
           }
           changeMinutesPlayed(start, newStartTime);
 
-          if (currentVideoIndex < videos.length - 1) {
-            dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
-            dispatch(setPlaying(true));
-          } else {
-            dispatch(setPlaying(false));
-          }
+          // When duration expires, just stop - don't advance to next video
+          dispatch(setPlaying(false));
         }, duration * minute);
       }
     }
@@ -278,15 +271,15 @@ const Player: React.FC = () => {
       console.warn("Failed to pause on video end:", error);
     }
 
+    // Stop playing before advancing - prevents auto-play
+    dispatch(setPlaying(false));
+
     // Reset start to 0 for next video
     dispatch(setStart(0));
 
-    // Advance to next video or stop
+    // Advance to next video (but don't auto-play since isPlaying is now false)
     if (currentVideoIndex < videos.length - 1) {
       dispatch(setCurrentVideoIndex(currentVideoIndex + 1));
-      // isPlaying remains true, useEffect will auto-play next video from start=0
-    } else {
-      dispatch(setPlaying(false));
     }
   };
 
