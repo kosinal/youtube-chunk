@@ -140,7 +140,8 @@ const Player: React.FC = () => {
         `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`,
       );
       if (!response.ok) {
-        throw new Error("Failed to fetch video title");
+        console.error("Failed to fetch video title");
+        return "";
       }
       const data = await response.json();
       return data.title || "";
@@ -186,7 +187,7 @@ const Player: React.FC = () => {
   const parseUrls = async (input: string): Promise<Video[]> => {
     const videos = parseUrlsWithoutTitles(input);
 
-    const videosWithTitles = await Promise.all(
+    return await Promise.all(
       videos.map(async (video) => {
         try {
           const title = await fetchVideoTitle(video.url);
@@ -197,8 +198,6 @@ const Player: React.FC = () => {
         }
       }),
     );
-
-    return videosWithTitles;
   };
 
   const handleVideoSelect = (index: number) => {
