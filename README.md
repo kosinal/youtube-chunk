@@ -14,11 +14,12 @@ A Progressive Web App (PWA) for playing specific segments of YouTube videos with
 
 ## 🛠️ Tech Stack
 
-- **Framework**: React 18 with TypeScript
-- **Build Tool**: Vite 6 with SWC for Fast Refresh
-- **State Management**: Redux Toolkit with localStorage persistence
-- **UI Library**: Material-UI (MUI) v6 with Emotion styling
+- **Framework**: React 19 with TypeScript
+- **Build Tool**: Vite 7 with SWC for Fast Refresh
+- **State Management**: Redux Toolkit with redux-persist (localStorage)
+- **UI Library**: Material-UI (MUI) v7 with Emotion styling
 - **YouTube Integration**: react-youtube library
+- **Testing**: Vitest with React Testing Library
 - **PWA**: vite-plugin-pwa with service worker support
 
 ## Demo
@@ -67,11 +68,29 @@ npm run build
 # Preview production build locally
 npm run preview
 
+# Run all tests with Vitest
+npm test
+
+# Run tests with UI
+npm run test:ui
+
+# Run tests with coverage report
+npm run test:coverage
+
 # Run ESLint
 npm run lint
 
+# Fix ESLint issues automatically
+npm run lint:fix
+
 # Format code with Prettier
 npm run format
+
+# Check code formatting without making changes
+npm run format:check
+
+# Run complete quality check (format, lint, test, build)
+npm run check
 ```
 
 ## 💡 Usage
@@ -90,11 +109,11 @@ npm run format
 
 ### State Management
 
-The app uses Redux Toolkit with automatic localStorage persistence:
+The app uses Redux Toolkit with redux-persist for localStorage persistence:
 
-- **playerSlice**: Manages video URL, start time, duration, playback state, and timestamp tracking
-- **Custom Middleware**: Automatically saves entire Redux state to localStorage on every action
-- **State Rehydration**: On app load, state is restored from localStorage if available
+- **playerSlice**: Manages video URL, start time, duration, playback state, timestamp tracking, and video list
+- **redux-persist**: Automatically saves entire Redux state to localStorage with whitelist configuration
+- **State Rehydration**: On app load, state is restored from localStorage using persistStore
 
 ### Video Playback Logic
 
@@ -106,9 +125,13 @@ The app uses Redux Toolkit with automatic localStorage persistence:
 ### PWA Configuration
 
 - **Manifest**: Configured in `vite.config.ts` with theme colors and app metadata
-- **Service Worker**: Auto-generated with `registerType: "prompt"` for update control
+- **Service Worker**: Auto-generated with `registerType: "autoUpdate"` for automatic updates
+- **Update Notification**: Shows notification when new version is available with option to update
+- **Cache Versioning**: Cache ID includes package.json version for automatic cache invalidation
+- **Runtime Caching**: Network-first for YouTube API, cache-first for images, network-first for HTML
 - **Offline Support**: Assets cached for offline functionality
 - **Install Prompt**: Users can install app on any device
+- **Auto Update Check**: Service worker checks for updates every hour
 
 ## 🌐 Deployment
 
@@ -122,9 +145,9 @@ npm run build
 
 2. The `dist/` folder contains the production build
 
-3. Base path is set to `/vite-youtube-chunker/` in `vite.config.ts`
+3. Base path is set to `/youtube-chunk/` in `vite.config.ts`
 
-4. Deploy the `dist/` folder to your hosting service
+4. Deploy the `dist/` folder to your hosting service (GitHub Pages, Netlify, Vercel, etc.)
 
 ## 🤝 Contributing
 

@@ -30,6 +30,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -43,6 +44,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -56,6 +58,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -74,6 +77,7 @@ describe("VideoList", () => {
         currentIndex={1}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -94,6 +98,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={mockOnVideoSelect}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -111,6 +116,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={true}
       />,
     );
@@ -138,6 +144,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -157,6 +164,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -175,6 +183,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -193,6 +202,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={mockOnDeleteVideo}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -213,6 +223,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={mockOnDeleteVideo}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -234,6 +245,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={mockOnDeleteVideo}
+        onClearPlaylist={vi.fn()}
         isPlaying={false}
       />,
     );
@@ -252,6 +264,7 @@ describe("VideoList", () => {
         currentIndex={0}
         onVideoSelect={vi.fn()}
         onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
         isPlaying={true}
       />,
     );
@@ -273,6 +286,7 @@ describe("VideoList", () => {
           currentIndex={0}
           onVideoSelect={vi.fn()}
           onDeleteVideo={mockOnDeleteVideo}
+          onClearPlaylist={vi.fn()}
           isPlaying={false}
         />
         <button data-testid="outside-button">Outside Button</button>
@@ -297,5 +311,79 @@ describe("VideoList", () => {
     // Second click should now delete
     await user.click(deleteButtons[1]);
     expect(mockOnDeleteVideo).toHaveBeenCalledWith(1);
+  });
+
+  it("calls onClearPlaylist when Playlist title is clicked", async () => {
+    const user = userEvent.setup();
+    const mockOnClearPlaylist = vi.fn();
+
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        onClearPlaylist={mockOnClearPlaylist}
+        isPlaying={false}
+      />,
+    );
+
+    const playlistTitle = screen.getByText(/Playlist \(3 videos\)/i);
+    await user.click(playlistTitle);
+
+    expect(mockOnClearPlaylist).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not call onClearPlaylist when title is clicked while playing", async () => {
+    const user = userEvent.setup();
+    const mockOnClearPlaylist = vi.fn();
+
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        onClearPlaylist={mockOnClearPlaylist}
+        isPlaying={true}
+      />,
+    );
+
+    const playlistTitle = screen.getByText(/Playlist \(3 videos\)/i);
+    await user.click(playlistTitle);
+
+    expect(mockOnClearPlaylist).not.toHaveBeenCalled();
+  });
+
+  it("Playlist title has pointer cursor when not playing", () => {
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
+        isPlaying={false}
+      />,
+    );
+
+    const playlistTitle = screen.getByText(/Playlist \(3 videos\)/i);
+    expect(playlistTitle).toHaveStyle({ cursor: "pointer" });
+  });
+
+  it("Playlist title has default cursor when playing", () => {
+    render(
+      <VideoList
+        videos={mockVideos}
+        currentIndex={0}
+        onVideoSelect={vi.fn()}
+        onDeleteVideo={vi.fn()}
+        onClearPlaylist={vi.fn()}
+        isPlaying={true}
+      />,
+    );
+
+    const playlistTitle = screen.getByText(/Playlist \(3 videos\)/i);
+    expect(playlistTitle).toHaveStyle({ cursor: "default" });
   });
 });

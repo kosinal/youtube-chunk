@@ -129,9 +129,10 @@ describe("Player Component", () => {
       expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
     });
 
-    // After loading, button should say "Clear Videos"
-    const clearButton = screen.getByRole("button", { name: /clear videos/i });
-    expect(clearButton).toBeInTheDocument();
+    // After loading, Load Videos button should be hidden (replaced by VideoList)
+    expect(
+      screen.queryByRole("button", { name: /load videos/i }),
+    ).not.toBeInTheDocument();
 
     // URL input should not be visible (replaced by VideoList)
     expect(
@@ -145,7 +146,6 @@ describe("Player Component", () => {
     // Inputs should be disabled
     expect(screen.getByLabelText(/start/i)).toBeDisabled();
     expect(screen.getByLabelText(/duration/i)).toBeDisabled();
-    expect(clearButton).toBeDisabled();
   });
 
   it("renders YouTube player when videos are loaded", async () => {
@@ -337,7 +337,7 @@ describe("Player Component", () => {
     });
   });
 
-  it("clears videos and restores textarea with URLs when Clear Videos is clicked", async () => {
+  it("hides Load Videos button when videos are loaded", async () => {
     const user = userEvent.setup({ delay: null });
     const { store } = renderWithProviders(<Player />);
 
@@ -359,27 +359,14 @@ describe("Player Component", () => {
     expect(
       screen.queryByLabelText(/youtube video urls/i),
     ).not.toBeInTheDocument();
+
+    // Load Videos button should be hidden when videos are loaded
     expect(
-      screen.getByRole("button", { name: /clear videos/i }),
-    ).toBeInTheDocument();
+      screen.queryByRole("button", { name: /load videos/i }),
+    ).not.toBeInTheDocument();
 
-    // Click Clear Videos
-    const clearButton = screen.getByRole("button", { name: /clear videos/i });
-    await user.click(clearButton);
-
-    // Verify videos are cleared and textarea is restored with URLs (with space after comma)
-    await waitFor(() => {
-      expect(store.getState().player.videos).toHaveLength(0);
-    });
-
-    const restoredUrlInput = screen.getByLabelText(/youtube video urls/i);
-    expect(restoredUrlInput).toBeInTheDocument();
-    expect(restoredUrlInput).toHaveValue(
-      "https://youtube.com/watch?v=dQw4w9WgXcQ, https://youtube.com/watch?v=jNQXAC9IVRw",
-    );
-    expect(
-      screen.getByRole("button", { name: /load videos/i }),
-    ).toBeInTheDocument();
+    // Playlist should be visible
+    expect(screen.getByText(/Playlist \(2 videos\)/i)).toBeInTheDocument();
   });
 
   it("has correct state behavior for video end with multiple videos", () => {
