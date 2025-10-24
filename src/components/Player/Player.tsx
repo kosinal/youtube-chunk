@@ -339,30 +339,23 @@ const Player: React.FC = () => {
                   currentIndex={currentVideoIndex}
                   onVideoSelect={handleVideoSelect}
                   onDeleteVideo={handleDeleteVideo}
+                  onClearPlaylist={handleClearVideos}
                   isPlaying={isPlaying}
                 />
               </Grid>
             )}
-            <Grid size={12}>
-              <Button
-                fullWidth
-                variant="contained"
-                onClick={
-                  videos.length === 0 ? handleLoadVideos : handleClearVideos
-                }
-                disabled={
-                  isPlaying ||
-                  isLoadingVideos ||
-                  (videos.length === 0 && !urlsInput.trim())
-                }
-              >
-                {isLoadingVideos
-                  ? "Loading..."
-                  : videos.length === 0
-                    ? "Load Videos"
-                    : "Clear Videos"}
-              </Button>
-            </Grid>
+            {videos.length === 0 && (
+              <Grid size={12}>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  onClick={handleLoadVideos}
+                  disabled={isPlaying || isLoadingVideos || !urlsInput.trim()}
+                >
+                  {isLoadingVideos ? "Loading..." : "Load Videos"}
+                </Button>
+              </Grid>
+            )}
             <Grid size={6}>
               <TextField
                 name="start"

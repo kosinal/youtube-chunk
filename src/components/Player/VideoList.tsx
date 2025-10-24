@@ -16,6 +16,7 @@ interface VideoListProps {
   currentIndex: number;
   onVideoSelect: (index: number) => void;
   onDeleteVideo: (index: number) => void;
+  onClearPlaylist: () => void;
   isPlaying: boolean;
 }
 
@@ -24,6 +25,7 @@ const VideoList: React.FC<VideoListProps> = ({
   currentIndex,
   onVideoSelect,
   onDeleteVideo,
+  onClearPlaylist,
   isPlaying,
 }) => {
   const [pendingDeleteIndex, setPendingDeleteIndex] = useState<number | null>(
@@ -62,8 +64,30 @@ const VideoList: React.FC<VideoListProps> = ({
       sx={{ mt: 2, maxHeight: 300, overflow: "auto" }}
       onBlur={handleBlur}
     >
-      <Typography variant="subtitle2" sx={{ p: 1, pb: 0 }}>
+      <Typography
+        variant="subtitle2"
+        onClick={!isPlaying ? onClearPlaylist : undefined}
+        sx={{
+          p: 1,
+          pb: 0,
+          cursor: !isPlaying ? "pointer" : "default",
+          userSelect: "none",
+          "&:hover": !isPlaying
+            ? { bgcolor: "action.hover", borderRadius: 1 }
+            : {},
+          transition: "background-color 0.2s ease",
+        }}
+      >
         Playlist ({videos.length} video{videos.length !== 1 ? "s" : ""})
+        {!isPlaying && (
+          <Typography
+            component="span"
+            variant="caption"
+            sx={{ ml: 1, opacity: 0.6, fontStyle: "italic" }}
+          >
+            (click to clear)
+          </Typography>
+        )}
       </Typography>
       <List dense>
         {videos.map((video, index) => {
