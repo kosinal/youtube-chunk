@@ -39,7 +39,7 @@
     "@types/react": "^19.2.2",
     "@types/react-dom": "^19.2.2",
     "@types/redux-logger": "^3.0.13",
-    "@vitejs/plugin-react-swc": "^4.1.0",
+    "@vitejs/plugin-react-swc": "^4.2.0",
     "@vitest/ui": "^3.2.4",
     "eslint": "^9.38.0",
     "eslint-plugin-react-hooks": "^7.0.0",
