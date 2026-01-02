@@ -5,7 +5,6 @@
   "schedule": ["before 8am on Monday"],
   "rangeStrategy": "bump",
   "rebaseWhen": "behind-base-branch",
-  "platformAutomerge": true,
   "packageRules": [
     {
       "matchPackagePatterns": ["*"],
