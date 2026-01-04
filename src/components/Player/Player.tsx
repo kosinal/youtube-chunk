@@ -69,13 +69,16 @@ const Player: React.FC = () => {
   const minute = 60 * 1000;
 
   const changeMinutesPlayed = useCallback(
-    (startMinutes: number, startTime: string) => {
+    (startMinutes: number, startTime: string, rollbackMinutes: number = 0) => {
       const currentTime = new Date();
       const videoStartTime = new Date(startTime);
       const delta = 1000;
       const diffRaw =
         Math.abs(currentTime.getTime() - videoStartTime.getTime()) + delta;
-      const minutesPlayed = Math.floor(diffRaw / 60000);
+      const minutesPlayed = Math.max(
+        0,
+        Math.floor(diffRaw / 60000) - rollbackMinutes,
+      );
       dispatch(setStart(startMinutes + minutesPlayed));
     },
     [dispatch],
@@ -118,7 +121,7 @@ const Player: React.FC = () => {
         } catch (error) {
           console.warn("Player pause failed:", error);
         }
-        changeMinutesPlayed(start, newStartTime);
+        changeMinutesPlayed(start, newStartTime, rollback);
 
         // When duration expires, just stop - don't advance to next video
         dispatch(setPlaying(false));
@@ -131,6 +134,7 @@ const Player: React.FC = () => {
     player,
     start,
     duration,
+    rollback,
     minute,
     dispatch,
     videos.length,
@@ -243,7 +247,7 @@ const Player: React.FC = () => {
           } catch (error) {
             console.warn("Failed to pause in timeout:", error);
           }
-          changeMinutesPlayed(start, newStartTime);
+          changeMinutesPlayed(start, newStartTime, rollback);
 
           // When duration expires, just stop - don't advance to next video
           dispatch(setPlaying(false));

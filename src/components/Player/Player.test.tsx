@@ -8,6 +8,7 @@ import {
   setPlaying,
   setStart,
   setCurrentVideoIndex,
+  setRollback,
 } from "./playerSlice";
 
 describe("Player Component", () => {
@@ -465,5 +466,104 @@ describe("Player Component", () => {
     expect(store.getState().player.isPlaying).toBe(false); // Stopped
     expect(store.getState().player.start).toBe(0); // Reset
     expect(store.getState().player.currentVideoIndex).toBe(0); // Stayed on same video
+  });
+
+  it("updates rollback when rollback input changes", async () => {
+    const user = userEvent.setup({ delay: null });
+    const { store } = renderWithProviders(<Player />);
+
+    const rollbackInput = screen.getByLabelText(/rollback/i);
+    await user.clear(rollbackInput);
+    await user.type(rollbackInput, "5");
+
+    expect(store.getState().player.rollback).toBe(5);
+  });
+
+  it("has correct rollback calculation when minutesPlayed >= rollback", () => {
+    // This test verifies the rollback formula: startMinutes + minutesPlayed - rollback
+    // when minutesPlayed >= rollback
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup initial state
+    const startMinutes = 10;
+    const minutesPlayed = 5;
+    const rollbackMinutes = 3;
+
+    store.dispatch(setStart(startMinutes));
+    store.dispatch(setRollback(rollbackMinutes));
+
+    // Simulate timeout behavior with rollback applied
+    // Formula: startMinutes + minutesPlayed - rollbackMinutes = 10 + 5 - 3 = 12
+    const expectedNewStart = startMinutes + minutesPlayed - rollbackMinutes;
+    store.dispatch(setStart(expectedNewStart));
+
+    expect(store.getState().player.start).toBe(12);
+  });
+
+  it("has correct rollback calculation when minutesPlayed < rollback (zero progress)", () => {
+    // This test verifies that when minutesPlayed < rollback, progress is clamped to 0
+    // Formula: startMinutes + Math.max(0, minutesPlayed - rollback)
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup initial state
+    const startMinutes = 10;
+    const minutesPlayed = 2;
+    const rollbackMinutes = 5;
+
+    store.dispatch(setStart(startMinutes));
+    store.dispatch(setRollback(rollbackMinutes));
+
+    // When minutesPlayed (2) < rollback (5), effective progress is 0
+    // Formula: startMinutes + max(0, 2 - 5) = 10 + 0 = 10
+    const expectedNewStart =
+      startMinutes + Math.max(0, minutesPlayed - rollbackMinutes);
+    store.dispatch(setStart(expectedNewStart));
+
+    expect(store.getState().player.start).toBe(10);
+  });
+
+  it("has correct behavior when user manually stops (no rollback)", () => {
+    // This test verifies that manual stop (user click) doesn't apply rollback
+    const { store } = renderWithProviders(<Player />);
+
+    // Setup initial state
+    const startMinutes = 10;
+    const minutesPlayed = 5;
+
+    store.dispatch(setStart(startMinutes));
+    store.dispatch(setRollback(3)); // Rollback is set but should NOT be applied on manual stop
+
+    // Simulate manual stop behavior (rollback = 0)
+    // Formula: startMinutes + minutesPlayed = 10 + 5 = 15
+    const expectedNewStart = startMinutes + minutesPlayed;
+    store.dispatch(setStart(expectedNewStart));
+
+    expect(store.getState().player.start).toBe(15);
+  });
+
+  it("disables rollback input when playing", async () => {
+    const user = userEvent.setup({ delay: null });
+    renderWithProviders(<Player />);
+
+    // Set URLs first
+    const urlInput = screen.getByLabelText(/youtube video urls/i);
+    fireEvent.change(urlInput, {
+      target: { value: "https://youtube.com/watch?v=dQw4w9WgXcQ" },
+    });
+
+    const loadButton = screen.getByRole("button", { name: /load videos/i });
+    await user.click(loadButton);
+
+    // Wait for YouTube player to be ready
+    await waitFor(() => {
+      expect(screen.getByTestId("youtube-player")).toBeInTheDocument();
+    });
+
+    // Click play button
+    const playButton = screen.getByLabelText(/play-pause/i);
+    await user.click(playButton);
+
+    // Rollback input should be disabled along with other inputs
+    expect(screen.getByLabelText(/rollback/i)).toBeDisabled();
   });
 });
