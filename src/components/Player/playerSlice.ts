@@ -11,6 +11,7 @@ interface AppState {
   videos: Video[];
   currentVideoIndex: number;
   duration: number;
+  rollback: number;
   start: number;
   delayedStart: number;
   isPlaying: boolean;
@@ -21,6 +22,7 @@ const initialState: AppState = {
   videos: [],
   currentVideoIndex: 0,
   duration: 60,
+  rollback: 0,
   start: 0,
   delayedStart: 0,
   isPlaying: false,
@@ -42,6 +44,9 @@ export const playerSlice = createAppSlice({
     ),
     setDuration: create.reducer((state, action: PayloadAction<number>) => {
       state.duration = action.payload;
+    }),
+    setRollback: create.reducer((state, action: PayloadAction<number>) => {
+      state.rollback = action.payload;
     }),
     setStart: create.reducer((state, action: PayloadAction<number>) => {
       state.start = action.payload;
@@ -70,6 +75,7 @@ export const playerSlice = createAppSlice({
     selectCurrentVideo: (state) =>
       state.videos[state.currentVideoIndex] || null,
     selectDuration: (state) => state.duration,
+    selectRollback: (state) => state.rollback,
     selectStart: (state) => state.start,
     selectIsPlaying: (state) => state.isPlaying,
     selectStartTime: (state) => state.startTime,
@@ -80,6 +86,7 @@ export const {
   setVideos,
   setCurrentVideoIndex,
   setDuration,
+  setRollback,
   setStart,
   setPlaying,
   setStartTime,
@@ -90,6 +97,7 @@ export const {
   selectCurrentVideoIndex,
   selectCurrentVideo,
   selectDuration,
+  selectRollback,
   selectStart,
   selectIsPlaying,
   selectStartTime,
