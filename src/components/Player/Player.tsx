@@ -8,11 +8,13 @@ import {
   setVideos,
   setCurrentVideoIndex,
   setDuration,
+  setRollback,
   setPlaying,
   selectVideos,
   selectCurrentVideoIndex,
   selectCurrentVideo,
   selectDuration,
+  selectRollback,
   selectIsPlaying,
   setStart,
   selectStart,
@@ -54,6 +56,7 @@ const Player: React.FC = () => {
   const start = useAppSelector(selectStart);
   const startTime = useAppSelector(selectStartTime);
   const duration = useAppSelector(selectDuration);
+  const rollback = useAppSelector(selectRollback);
   const isPlaying = useAppSelector(selectIsPlaying);
 
   const [urlsInput, setUrlsInput] = useState<string>("");
@@ -66,13 +69,16 @@ const Player: React.FC = () => {
   const minute = 60 * 1000;
 
   const changeMinutesPlayed = useCallback(
-    (startMinutes: number, startTime: string) => {
+    (startMinutes: number, startTime: string, rollbackMinutes: number = 0) => {
       const currentTime = new Date();
       const videoStartTime = new Date(startTime);
       const delta = 1000;
       const diffRaw =
         Math.abs(currentTime.getTime() - videoStartTime.getTime()) + delta;
-      const minutesPlayed = Math.floor(diffRaw / 60000);
+      const minutesPlayed = Math.max(
+        0,
+        Math.floor(diffRaw / 60000) - rollbackMinutes,
+      );
       dispatch(setStart(startMinutes + minutesPlayed));
     },
     [dispatch],
@@ -115,7 +121,7 @@ const Player: React.FC = () => {
         } catch (error) {
           console.warn("Player pause failed:", error);
         }
-        changeMinutesPlayed(start, newStartTime);
+        changeMinutesPlayed(start, newStartTime, rollback);
 
         // When duration expires, just stop - don't advance to next video
         dispatch(setPlaying(false));
@@ -128,6 +134,7 @@ const Player: React.FC = () => {
     player,
     start,
     duration,
+    rollback,
     minute,
     dispatch,
     videos.length,
@@ -240,7 +247,7 @@ const Player: React.FC = () => {
           } catch (error) {
             console.warn("Failed to pause in timeout:", error);
           }
-          changeMinutesPlayed(start, newStartTime);
+          changeMinutesPlayed(start, newStartTime, rollback);
 
           // When duration expires, just stop - don't advance to next video
           dispatch(setPlaying(false));
@@ -356,7 +363,7 @@ const Player: React.FC = () => {
                 </Button>
               </Grid>
             )}
-            <Grid size={6}>
+            <Grid size={4}>
               <TextField
                 name="start"
                 required
@@ -380,7 +387,7 @@ const Player: React.FC = () => {
                   : {})}
               />
             </Grid>
-            <Grid size={6}>
+            <Grid size={4}>
               <TextField
                 name="duration"
                 required
@@ -394,6 +401,29 @@ const Player: React.FC = () => {
                 slotProps={{
                   input: {
                     inputMode: "numeric",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={4}>
+              <TextField
+                name="rollback"
+                required
+                fullWidth
+                type="number"
+                id="rollback"
+                label="Rollback"
+                value={rollback}
+                disabled={isPlaying}
+                onChange={(e) =>
+                  dispatch(setRollback(Math.floor(Number(e.target.value))))
+                }
+                slotProps={{
+                  input: {
+                    inputMode: "numeric",
+                  },
+                  htmlInput: {
+                    step: 1,
                   },
                 }}
               />
