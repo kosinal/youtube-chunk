@@ -8,11 +8,13 @@ import {
   setVideos,
   setCurrentVideoIndex,
   setDuration,
+  setRollback,
   setPlaying,
   selectVideos,
   selectCurrentVideoIndex,
   selectCurrentVideo,
   selectDuration,
+  selectRollback,
   selectIsPlaying,
   setStart,
   selectStart,
@@ -54,6 +56,7 @@ const Player: React.FC = () => {
   const start = useAppSelector(selectStart);
   const startTime = useAppSelector(selectStartTime);
   const duration = useAppSelector(selectDuration);
+  const rollback = useAppSelector(selectRollback);
   const isPlaying = useAppSelector(selectIsPlaying);
 
   const [urlsInput, setUrlsInput] = useState<string>("");
@@ -356,7 +359,7 @@ const Player: React.FC = () => {
                 </Button>
               </Grid>
             )}
-            <Grid size={6}>
+            <Grid size={4}>
               <TextField
                 name="start"
                 required
@@ -380,7 +383,7 @@ const Player: React.FC = () => {
                   : {})}
               />
             </Grid>
-            <Grid size={6}>
+            <Grid size={4}>
               <TextField
                 name="duration"
                 required
@@ -394,6 +397,29 @@ const Player: React.FC = () => {
                 slotProps={{
                   input: {
                     inputMode: "numeric",
+                  },
+                }}
+              />
+            </Grid>
+            <Grid size={4}>
+              <TextField
+                name="rollback"
+                required
+                fullWidth
+                type="number"
+                id="rollback"
+                label="Rollback"
+                value={rollback}
+                disabled={isPlaying}
+                onChange={(e) =>
+                  dispatch(setRollback(Math.floor(Number(e.target.value))))
+                }
+                slotProps={{
+                  input: {
+                    inputMode: "numeric",
+                  },
+                  htmlInput: {
+                    step: 1,
                   },
                 }}
               />

@@ -4,6 +4,7 @@ import {
   setVideos,
   setCurrentVideoIndex,
   setDuration,
+  setRollback,
   setStart,
   setPlaying,
   setStartTime,
@@ -11,6 +12,7 @@ import {
   selectCurrentVideoIndex,
   selectCurrentVideo,
   selectDuration,
+  selectRollback,
   selectStart,
   selectIsPlaying,
   selectStartTime,
@@ -22,6 +24,7 @@ describe("playerSlice", () => {
     videos: [],
     currentVideoIndex: 0,
     duration: 60,
+    rollback: 0,
     start: 0,
     delayedStart: 0,
     isPlaying: false,
@@ -73,6 +76,12 @@ describe("playerSlice", () => {
       const state = playerSlice.reducer(initialState, setDuration(120));
 
       expect(state.duration).toBe(120);
+    });
+
+    it("should handle setRollback", () => {
+      const state = playerSlice.reducer(initialState, setRollback(5));
+
+      expect(state.rollback).toBe(5);
     });
 
     it("should handle setStart", () => {
@@ -127,6 +136,7 @@ describe("playerSlice", () => {
         videos: testVideos,
         currentVideoIndex: 0,
         duration: 45,
+        rollback: 0,
         start: 10,
         delayedStart: 0,
         isPlaying: true,
@@ -158,6 +168,16 @@ describe("playerSlice", () => {
 
     it("selectDuration should return duration", () => {
       expect(selectDuration(mockState)).toBe(45);
+    });
+
+    it("selectRollback should return rollback", () => {
+      const stateWithRollback = {
+        player: {
+          ...mockState.player,
+          rollback: 10,
+        },
+      };
+      expect(selectRollback(stateWithRollback)).toBe(10);
     });
 
     it("selectStart should return start time", () => {
