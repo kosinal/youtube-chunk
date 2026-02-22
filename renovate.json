@@ -7,6 +7,11 @@
   "rebaseWhen": "behind-base-branch",
   "packageRules": [
     {
+      "matchPackageNames": ["eslint", "@eslint/js"],
+      "allowedVersions": "<10.0.0",
+      "description": "Block eslint 10 until eslint-plugin-react-hooks supports it"
+    },
+    {
       "matchPackagePatterns": ["*"],
       "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
       "groupName": "all non-major dependencies",
