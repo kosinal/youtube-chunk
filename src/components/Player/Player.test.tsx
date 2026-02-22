@@ -1,5 +1,5 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import { screen, waitFor, fireEvent } from "@testing-library/react";
+import { screen, waitFor, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { renderWithProviders } from "../../test/testUtils";
 import Player from "./Player";
@@ -376,17 +376,19 @@ describe("Player Component", () => {
     const { store } = renderWithProviders(<Player />);
 
     // Setup: Load 2 videos
-    store.dispatch(
-      setVideos([
-        { id: "video1", url: "https://youtube.com/watch?v=video1" },
-        { id: "video2", url: "https://youtube.com/watch?v=video2" },
-      ]),
-    );
+    act(() => {
+      store.dispatch(
+        setVideos([
+          { id: "video1", url: "https://youtube.com/watch?v=video1" },
+          { id: "video2", url: "https://youtube.com/watch?v=video2" },
+        ]),
+      );
 
-    // Setup: Set non-zero start and playing state
-    store.dispatch(setStart(5));
-    store.dispatch(setCurrentVideoIndex(0));
-    store.dispatch(setPlaying(true));
+      // Setup: Set non-zero start and playing state
+      store.dispatch(setStart(5));
+      store.dispatch(setCurrentVideoIndex(0));
+      store.dispatch(setPlaying(true));
+    });
 
     // Verify initial state
     expect(store.getState().player.isPlaying).toBe(true);
@@ -397,9 +399,11 @@ describe("Player Component", () => {
     // 1. Stop playing FIRST (prevents auto-play)
     // 2. Reset start to 0
     // 3. Advance to next video
-    store.dispatch(setPlaying(false));
-    store.dispatch(setStart(0));
-    store.dispatch(setCurrentVideoIndex(1));
+    act(() => {
+      store.dispatch(setPlaying(false));
+      store.dispatch(setStart(0));
+      store.dispatch(setCurrentVideoIndex(1));
+    });
 
     // Verify final state after video end
     expect(store.getState().player.isPlaying).toBe(false); // NOT auto-playing
@@ -413,16 +417,18 @@ describe("Player Component", () => {
     const { store } = renderWithProviders(<Player />);
 
     // Setup: Load 2 videos
-    store.dispatch(
-      setVideos([
-        { id: "video1", url: "https://youtube.com/watch?v=video1" },
-        { id: "video2", url: "https://youtube.com/watch?v=video2" },
-      ]),
-    );
+    act(() => {
+      store.dispatch(
+        setVideos([
+          { id: "video1", url: "https://youtube.com/watch?v=video1" },
+          { id: "video2", url: "https://youtube.com/watch?v=video2" },
+        ]),
+      );
 
-    // Setup: Start playing first video
-    store.dispatch(setCurrentVideoIndex(0));
-    store.dispatch(setPlaying(true));
+      // Setup: Start playing first video
+      store.dispatch(setCurrentVideoIndex(0));
+      store.dispatch(setPlaying(true));
+    });
 
     const initialIndex = store.getState().player.currentVideoIndex;
 
@@ -432,7 +438,9 @@ describe("Player Component", () => {
 
     // Simulate duration timeout behavior (the fix we implemented):
     // Should ONLY stop playing, NOT advance to next video
-    store.dispatch(setPlaying(false));
+    act(() => {
+      store.dispatch(setPlaying(false));
+    });
 
     // Verify final state after duration timeout
     expect(store.getState().player.isPlaying).toBe(false); // Stopped
@@ -444,14 +452,18 @@ describe("Player Component", () => {
     const { store } = renderWithProviders(<Player />);
 
     // Setup: Load 1 video
-    store.dispatch(
-      setVideos([{ id: "video1", url: "https://youtube.com/watch?v=video1" }]),
-    );
+    act(() => {
+      store.dispatch(
+        setVideos([
+          { id: "video1", url: "https://youtube.com/watch?v=video1" },
+        ]),
+      );
 
-    // Setup: Playing with non-zero start
-    store.dispatch(setStart(10));
-    store.dispatch(setCurrentVideoIndex(0));
-    store.dispatch(setPlaying(true));
+      // Setup: Playing with non-zero start
+      store.dispatch(setStart(10));
+      store.dispatch(setCurrentVideoIndex(0));
+      store.dispatch(setPlaying(true));
+    });
 
     // Verify initial state
     expect(store.getState().player.isPlaying).toBe(true);
@@ -459,8 +471,10 @@ describe("Player Component", () => {
 
     // Simulate last video end behavior:
     // Stop playing and reset start, but don't advance (no more videos)
-    store.dispatch(setPlaying(false));
-    store.dispatch(setStart(0));
+    act(() => {
+      store.dispatch(setPlaying(false));
+      store.dispatch(setStart(0));
+    });
 
     // Verify final state
     expect(store.getState().player.isPlaying).toBe(false); // Stopped
@@ -489,13 +503,17 @@ describe("Player Component", () => {
     const minutesPlayed = 5;
     const rollbackMinutes = 3;
 
-    store.dispatch(setStart(startMinutes));
-    store.dispatch(setRollback(rollbackMinutes));
+    act(() => {
+      store.dispatch(setStart(startMinutes));
+      store.dispatch(setRollback(rollbackMinutes));
+    });
 
     // Simulate timeout behavior with rollback applied
     // Formula: startMinutes + minutesPlayed - rollbackMinutes = 10 + 5 - 3 = 12
     const expectedNewStart = startMinutes + minutesPlayed - rollbackMinutes;
-    store.dispatch(setStart(expectedNewStart));
+    act(() => {
+      store.dispatch(setStart(expectedNewStart));
+    });
 
     expect(store.getState().player.start).toBe(12);
   });
@@ -510,14 +528,18 @@ describe("Player Component", () => {
     const minutesPlayed = 2;
     const rollbackMinutes = 5;
 
-    store.dispatch(setStart(startMinutes));
-    store.dispatch(setRollback(rollbackMinutes));
+    act(() => {
+      store.dispatch(setStart(startMinutes));
+      store.dispatch(setRollback(rollbackMinutes));
+    });
 
     // When minutesPlayed (2) < rollback (5), effective progress is 0
     // Formula: startMinutes + max(0, 2 - 5) = 10 + 0 = 10
     const expectedNewStart =
       startMinutes + Math.max(0, minutesPlayed - rollbackMinutes);
-    store.dispatch(setStart(expectedNewStart));
+    act(() => {
+      store.dispatch(setStart(expectedNewStart));
+    });
 
     expect(store.getState().player.start).toBe(10);
   });
@@ -530,13 +552,17 @@ describe("Player Component", () => {
     const startMinutes = 10;
     const minutesPlayed = 5;
 
-    store.dispatch(setStart(startMinutes));
-    store.dispatch(setRollback(3)); // Rollback is set but should NOT be applied on manual stop
+    act(() => {
+      store.dispatch(setStart(startMinutes));
+      store.dispatch(setRollback(3)); // Rollback is set but should NOT be applied on manual stop
+    });
 
     // Simulate manual stop behavior (rollback = 0)
     // Formula: startMinutes + minutesPlayed = 10 + 5 = 15
     const expectedNewStart = startMinutes + minutesPlayed;
-    store.dispatch(setStart(expectedNewStart));
+    act(() => {
+      store.dispatch(setStart(expectedNewStart));
+    });
 
     expect(store.getState().player.start).toBe(15);
   });
