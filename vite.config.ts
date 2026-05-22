@@ -112,20 +112,23 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Material-UI core components
-          "mui-core": ["@mui/material", "@emotion/react", "@emotion/styled"],
-          // Material-UI icons separate chunk
-          "mui-icons": ["@mui/icons-material"],
-          // YouTube player library
-          "react-youtube": ["react-youtube"],
-          // Redux state management
-          redux: [
-            "@reduxjs/toolkit",
-            "react-redux",
-            "redux-persist",
-            "redux-logger",
-          ],
+        manualChunks(id) {
+          if (!id.includes("node_modules")) return;
+          if (id.includes("@mui/icons-material")) return "mui-icons";
+          if (
+            id.includes("@mui/material") ||
+            id.includes("@emotion/react") ||
+            id.includes("@emotion/styled")
+          )
+            return "mui-core";
+          if (id.includes("react-youtube")) return "react-youtube";
+          if (
+            id.includes("@reduxjs/toolkit") ||
+            id.includes("react-redux") ||
+            id.includes("redux-persist") ||
+            id.includes("redux-logger")
+          )
+            return "redux";
         },
       },
     },
