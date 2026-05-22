@@ -8,7 +8,7 @@ import type {
 import { combineSlices, configureStore } from "@reduxjs/toolkit";
 import { setupListeners } from "@reduxjs/toolkit/query";
 import { playerSlice } from "../components/Player/playerSlice";
-import logger from "redux-logger";
+import { logger } from "redux-logger";
 
 // `combineSlices` automatically combines the reducers using
 // their `reducerPath`s, therefore we no longer need to call `combineReducers`.
