@@ -6,7 +6,7 @@ import ListItemText from "@mui/material/ListItemText";
 import Paper from "@mui/material/Paper";
 import Typography from "@mui/material/Typography";
 import IconButton from "@mui/material/IconButton";
-import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutlined";
 import type { Video } from "./playerSlice";
 import ScrollingText from "./ScrollingText";
 import styles from "./VideoList.module.css";
@@ -133,10 +133,12 @@ const VideoList: React.FC<VideoListProps> = ({
                       isSelected={index === currentIndex}
                     />
                   }
-                  primaryTypographyProps={{
-                    fontSize: "0.875rem",
-                    component: "div",
-                    className: styles.primaryText,
+                  slotProps={{
+                    primary: {
+                      component: "div",
+                      className: styles.primaryText,
+                      sx: { fontSize: "0.875rem" },
+                    },
                   }}
                 />
               </ListItemButton>
